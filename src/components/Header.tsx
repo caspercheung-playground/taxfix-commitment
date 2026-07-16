@@ -4,23 +4,26 @@ import { Icon } from "./icons";
 export function Header({ progress }: { progress?: number }) {
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-[var(--color-line)]">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        <Logo />
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-3">
+          <Logo />
+          <span className="inline-flex items-center rounded-full bg-[var(--color-brand-soft-2)] px-3 py-1 text-xs font-semibold text-[var(--color-brand-dark)]">
+            Case Study Prototype
+          </span>
+        </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button
             type="button"
             className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-[var(--color-muted)] hover:bg-[var(--color-cream)]"
           >
-            <Icon name="globe" size={16} />
-            English
+            Freelance + Rental
             <Icon name="chevron-down" size={14} />
           </button>
           <button
             type="button"
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-[var(--color-muted)] hover:bg-[var(--color-cream)]"
           >
-            <Icon name="user" size={16} />
-            Account
+            Casper
             <Icon name="chevron-down" size={14} />
           </button>
         </div>
