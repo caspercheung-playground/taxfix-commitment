@@ -1,5 +1,6 @@
-import type { Category, ChecklistItemDef, Question } from "./types";
+import type { Category, ChecklistItemDef, IncomeBracketId, Question } from "./types";
 import type { ChecklistItemState } from "./store";
+import { incomeBrackets } from "./data";
 
 export function answerKey(categoryId: string, questionId: string) {
   return `${categoryId}.${questionId}`;
@@ -57,19 +58,33 @@ export function formatDisplayValue(
     return raw === "Not sure" ? "Not sure" : `£${raw}`;
   }
 
+  if (question.type === "income-bracket") {
+    return incomeBrackets.find((b) => b.id === raw)?.label ?? "";
+  }
+
   return raw;
 }
 
 /** Sum of self-employment + rental income entered so far ("Not sure" counts as 0) */
-export function combinedSeAndRentalIncome(answers: Record<string, string>): number {
-  const keys = [
-    answerKey("self-employment", "income-amount"),
-    answerKey("property", "property-income"),
-  ];
-  return keys.reduce((sum, key) => {
-    const value = parseFloat(answers[key] ?? "");
-    return sum + (Number.isFinite(value) ? value : 0);
-  }, 0);
+const INCOME_BRACKET_KEYS = [
+  answerKey("self-employment", "income-amount"),
+  answerKey("property", "property-income"),
+];
+
+/** Bracket ids the user picked across the self-employment and rental income questions */
+export function selectedIncomeBrackets(answers: Record<string, string>): IncomeBracketId[] {
+  return INCOME_BRACKET_KEYS.map((key) => answers[key]).filter(
+    (id): id is IncomeBracketId => incomeBrackets.some((b) => b.id === id)
+  );
+}
+
+/**
+ * Brackets replaced exact amounts, so this keys off the highest bracket picked
+ * rather than a combined total: MTD applies from April 2026 once an income
+ * stream is in the £50,000+ bracket.
+ */
+export function mtdAppliesThisYear(answers: Record<string, string>): boolean {
+  return selectedIncomeBrackets(answers).includes("50k-plus");
 }
 
 // Deterministic pseudo-UUID generator, purely cosmetic — mirrors the

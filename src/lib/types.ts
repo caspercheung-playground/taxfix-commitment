@@ -1,6 +1,12 @@
 import type { IconName } from "@/components/icons";
 
-export type QuestionType = "text" | "currency" | "yes-no" | "pills-multi" | "checklist-add";
+export type QuestionType =
+  | "text"
+  | "currency"
+  | "yes-no"
+  | "pills-multi"
+  | "checklist-add"
+  | "income-bracket";
 
 export interface BaseQuestion {
   id: string;
@@ -28,6 +34,10 @@ export interface YesNoQuestion extends BaseQuestion {
   type: "yes-no";
 }
 
+export interface IncomeBracketQuestion extends BaseQuestion {
+  type: "income-bracket";
+}
+
 export interface PillsMultiQuestion extends BaseQuestion {
   type: "pills-multi";
   options: string[];
@@ -49,6 +59,7 @@ export type Question =
   | TextQuestion
   | CurrencyQuestion
   | YesNoQuestion
+  | IncomeBracketQuestion
   | PillsMultiQuestion
   | ChecklistAddQuestion;
 
@@ -61,6 +72,15 @@ export interface Category {
   questions: Question[];
   doneHeading: string;
   doneSub: string;
+}
+
+export type IncomeBracketId = "under-30k" | "30k-to-50k" | "50k-plus";
+
+export interface IncomeBracket {
+  id: IncomeBracketId;
+  label: string;
+  /** Shown below the options once this bracket is selected */
+  message: string;
 }
 
 export interface ReasonCard {

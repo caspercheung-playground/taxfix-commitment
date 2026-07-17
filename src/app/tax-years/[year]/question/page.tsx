@@ -9,13 +9,13 @@ import { Sidebar } from "@/components/wizard/Sidebar";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
 import { UrgencyStrip } from "@/components/UrgencyStrip";
-import { categories, MTD_INCOME_THRESHOLD } from "@/lib/data";
+import { categories } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
 import {
   answerKey,
   checklistItemKey,
-  combinedSeAndRentalIncome,
   getVisibleQuestions,
+  mtdAppliesThisYear,
   pseudoUuid,
 } from "@/lib/wizard";
 
@@ -35,8 +35,7 @@ export default function QuestionWizardPage() {
   const mtdBannerDismissed = useAppStore((s) => s.mtdBannerDismissed);
   const dismissMtdBanner = useAppStore((s) => s.dismissMtdBanner);
 
-  const showMtdBanner =
-    !mtdBannerDismissed && combinedSeAndRentalIncome(answers) > MTD_INCOME_THRESHOLD;
+  const showMtdBanner = !mtdBannerDismissed && mtdAppliesThisYear(answers);
 
   const activeCategories = useMemo(
     () => categories.filter((c) => incomeSources.includes(c.incomeSourceId)),

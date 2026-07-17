@@ -5,6 +5,7 @@ import type { Category, Question } from "@/lib/types";
 import type { ChecklistItemState } from "@/lib/store";
 import { Icon } from "@/components/icons";
 import { Modal } from "@/components/Modal";
+import { incomeBrackets } from "@/lib/data";
 
 function ContextNote({ note }: { note?: string }) {
   if (!note) return null;
@@ -68,6 +69,9 @@ export function QuestionCard({
   }
   if (question.type === "yes-no") {
     return <YesNoQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
+  }
+  if (question.type === "income-bracket") {
+    return <IncomeBracketQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
   }
   if (question.type === "pills-multi") {
     return <PillsQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
@@ -176,6 +180,62 @@ function YesNoQuestionCard({
             {opt}
           </button>
         ))}
+      </div>
+    </QuestionShell>
+  );
+}
+
+function IncomeBracketQuestionCard({
+  question,
+  rawValue,
+  onConfirm,
+}: {
+  question: Extract<Question, { type: "income-bracket" }>;
+  rawValue: string | undefined;
+  onConfirm: (value: string) => void;
+}) {
+  // Held locally rather than confirmed on click so the contextual MTD message
+  // stays on screen instead of the flow advancing past it.
+  const [selected, setSelected] = useState(rawValue ?? "");
+  const message = incomeBrackets.find((b) => b.id === selected)?.message;
+
+  return (
+    <QuestionShell question={question}>
+      <div className="flex flex-col gap-3">
+        {incomeBrackets.map((bracket) => (
+          <button
+            key={bracket.id}
+            type="button"
+            onClick={() => setSelected(bracket.id)}
+            className={`flex items-center gap-3 rounded-2xl border p-4 text-left font-bold transition ${
+              selected === bracket.id
+                ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)]"
+                : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
+            }`}
+          >
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                selected === bracket.id
+                  ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-dark)] text-white"
+                  : "border-[var(--color-line)] bg-white"
+              }`}
+            >
+              {selected === bracket.id && <Icon name="check" size={14} />}
+            </span>
+            {bracket.label}
+          </button>
+        ))}
+      </div>
+
+      {message && (
+        <p className="mt-4 flex items-start gap-2 rounded-2xl bg-[var(--color-cream)] p-4 text-sm text-[var(--color-muted)]">
+          <Icon name="help-circle" size={16} className="mt-0.5 shrink-0 text-[var(--color-brand-dark)]" />
+          {message}
+        </p>
+      )}
+
+      <div>
+        <NextButton disabled={!selected} onClick={() => onConfirm(selected)} />
       </div>
     </QuestionShell>
   );

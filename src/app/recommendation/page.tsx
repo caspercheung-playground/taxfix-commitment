@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Icon, type IconName } from "@/components/icons";
 import { UrgencyStrip } from "@/components/UrgencyStrip";
-import { categories, incomeSources, MTD_INCOME_THRESHOLD, recommendedPlan } from "@/lib/data";
+import { categories, incomeSources, recommendedPlan } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
-import { combinedSeAndRentalIncome, formatDisplayValue, getVisibleQuestions } from "@/lib/wizard";
+import { formatDisplayValue, getVisibleQuestions, mtdAppliesThisYear } from "@/lib/wizard";
 
 function listOf(items: string[]): string {
   if (items.length <= 1) return items[0] ?? "";
@@ -59,7 +59,7 @@ export default function RecommendationPage() {
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
 
   const activeCategories = categories.filter((c) => selectedSources.includes(c.incomeSourceId));
-  const combinedIncome = combinedSeAndRentalIncome(answers);
+  const mtdApplies = mtdAppliesThisYear(answers);
   const hasCapitalGains = selectedSources.includes("capital-gains");
   const needsUtrRegistration = utr === "No";
 
@@ -67,12 +67,9 @@ export default function RecommendationPage() {
     .filter((s) => selectedSources.includes(s.id))
     .map((s) => s.title.toLowerCase());
 
-  const utrPhrase =
-    utr === "Yes"
-      ? "already have a UTR"
-      : utr === "No"
-        ? "don't have a UTR yet"
-        : "aren't sure about your UTR yet";
+  const reasoningLine = `Recommended because you have ${listOf(incomeTypeNames)}${
+    needsUtrRegistration ? ", and we'll register your UTR for you" : ""
+  }.`;
 
   function editCategory(index: number) {
     setCategoryIndex(index);
@@ -181,12 +178,7 @@ export default function RecommendationPage() {
               <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">
                 {recommendedPlan.price} — {recommendedPlan.name}
               </h1>
-              <p className="mt-3 text-[var(--color-ink)]">
-                Recommended because you have {listOf(incomeTypeNames)} and {utrPhrase}.
-                {needsUtrRegistration && (
-                  <> We&apos;ll handle your UTR registration as part of this plan.</>
-                )}
-              </p>
+              <p className="mt-3 text-[var(--color-ink)]">{reasoningLine}</p>
             </div>
 
             <div className="mt-6 space-y-1 px-1 text-sm text-[var(--color-muted)]">
@@ -204,7 +196,7 @@ export default function RecommendationPage() {
               <StepVisual needsUtrRegistration={needsUtrRegistration} />
             </div>
 
-            {combinedIncome <= MTD_INCOME_THRESHOLD && (
+            {!mtdApplies && (
               <p className="mt-6 flex items-center gap-2 px-1 text-sm text-[var(--color-muted)]">
                 <Icon name="check" size={16} className="shrink-0 text-[var(--color-brand-dark)]" />
                 Making Tax Digital doesn&apos;t apply to you this year.

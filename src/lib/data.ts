@@ -1,4 +1,4 @@
-import type { Category, IncomeSource, ReasonCard } from "./types";
+import type { Category, IncomeBracket, IncomeSource, ReasonCard } from "./types";
 
 export const TAX_YEAR = "2025";
 export const TAX_YEAR_RANGE = "6 Apr 2025 – 5 Apr 2026";
@@ -9,8 +9,30 @@ export const recommendedPlan = {
   name: "Filed, Optimised & Protected",
 };
 
-/** Combined self-employment + rental income above this may trigger Making Tax Digital */
-export const MTD_INCOME_THRESHOLD = 50000;
+/**
+ * Income brackets are split on HMRC's Making Tax Digital thresholds — £50,000
+ * (applies from April 2026) and £30,000 (applies from April 2027). The spacing
+ * is uneven on purpose; the boundaries are regulatory, not presentational.
+ */
+export const incomeBrackets: IncomeBracket[] = [
+  {
+    id: "under-30k",
+    label: "Under £30,000",
+    message: "You're not affected by Making Tax Digital under current or upcoming rules.",
+  },
+  {
+    id: "30k-to-50k",
+    label: "£30,000 – £49,999",
+    message:
+      "Making Tax Digital doesn't apply to you this year, but will from April 2027 when the threshold drops to £30,000.",
+  },
+  {
+    id: "50k-plus",
+    label: "£50,000 or more",
+    message:
+      "Since your income is over £50,000, Making Tax Digital applies to you from April 2026. We'll confirm this as part of your plan.",
+  },
+];
 
 export const reasonCards: ReasonCard[] = [
   { id: "self-employed", label: "I earned money through self-employment", icon: "briefcase" },
@@ -93,11 +115,10 @@ export const categories: Category[] = [
       },
       {
         id: "income-amount",
-        type: "currency",
+        type: "income-bracket",
         sidebarLabel: "Self-employed income",
         prompt: "How much self-employed income did you earn last tax year?",
         helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
-        notSure: true,
       },
       {
         id: "expenses-under-1000",
@@ -161,11 +182,10 @@ export const categories: Category[] = [
       },
       {
         id: "property-income",
-        type: "currency",
+        type: "income-bracket",
         sidebarLabel: "Rental income",
         prompt: "How much rental income did you earn last tax year?",
         helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
-        notSure: true,
       },
       {
         id: "mortgage",
