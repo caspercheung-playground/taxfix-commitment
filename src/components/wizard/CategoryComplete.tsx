@@ -48,15 +48,15 @@ export function CategoryComplete({
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
               {nextCategory ? "Next" : "All done"}
             </p>
-            <p className="font-bold">{nextCategory ? nextCategory.title : "Review your answers"}</p>
+            <p className="font-bold">{nextCategory ? nextCategory.title : "Best Service for me"}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={onContinue}
-          className="shrink-0 rounded-full bg-[var(--color-brand)] px-5 py-2.5 font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
+          className="shrink-0 rounded-lg bg-[var(--color-brand)] px-5 py-2.5 font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
         >
-          {nextCategory ? "Continue" : "Finish"}
+          {nextCategory ? "Continue" : "Check"}
         </button>
       </div>
     </div>

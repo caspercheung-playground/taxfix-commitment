@@ -3,6 +3,15 @@ import type { Category, IncomeSource, ReasonCard } from "./types";
 export const TAX_YEAR = "2025";
 export const TAX_YEAR_RANGE = "6 Apr 2025 – 5 Apr 2026";
 
+/** Placeholder until real plan data exists */
+export const recommendedPlan = {
+  price: "£149",
+  name: "Filed, Optimised & Protected",
+};
+
+/** Combined self-employment + rental income above this may trigger Making Tax Digital */
+export const MTD_INCOME_THRESHOLD = 50000;
+
 export const reasonCards: ReasonCard[] = [
   { id: "self-employed", label: "I earned money through self-employment", icon: "briefcase" },
   { id: "relief", label: "I'm claiming a tax relief or refund", icon: "refresh" },
@@ -149,6 +158,14 @@ export const categories: Category[] = [
         prompt: "What type of property income did you receive?",
         helper: "Select all that apply",
         options: ["Rented a flat or house", "Rented a room", "Furnished holiday let"],
+      },
+      {
+        id: "property-income",
+        type: "currency",
+        sidebarLabel: "Rental income",
+        prompt: "How much rental income did you earn last tax year?",
+        helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
+        notSure: true,
       },
       {
         id: "mortgage",

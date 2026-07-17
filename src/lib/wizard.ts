@@ -60,6 +60,18 @@ export function formatDisplayValue(
   return raw;
 }
 
+/** Sum of self-employment + rental income entered so far ("Not sure" counts as 0) */
+export function combinedSeAndRentalIncome(answers: Record<string, string>): number {
+  const keys = [
+    answerKey("self-employment", "income-amount"),
+    answerKey("property", "property-income"),
+  ];
+  return keys.reduce((sum, key) => {
+    const value = parseFloat(answers[key] ?? "");
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+}
+
 // Deterministic pseudo-UUID generator, purely cosmetic — mirrors the
 // sectionId / taskId query params seen on the real product's URLs.
 export function pseudoUuid(seed: string): string {

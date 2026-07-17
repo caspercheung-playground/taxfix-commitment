@@ -26,8 +26,8 @@ function QuestionShell({
       <div className="rounded-3xl bg-[var(--color-brand-soft)] p-6 sm:p-8">
         <h3 className="text-xl font-extrabold leading-snug sm:text-2xl">{question.prompt}</h3>
         {question.helper && <p className="mt-2 text-[var(--color-muted)]">{question.helper}</p>}
-        <div className="mt-6">{children}</div>
       </div>
+      <div className="mt-6 px-1">{children}</div>
     </>
   );
 }
@@ -38,7 +38,7 @@ function NextButton({ disabled, onClick, label = "Next" }: { disabled?: boolean;
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="mt-6 rounded-full bg-[var(--color-brand)] px-6 py-3 font-bold text-[var(--color-brand-dark)] transition disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[var(--color-brand-dark)] hover:text-white"
+      className="mt-6 rounded-lg bg-[var(--color-brand)] px-6 py-3 font-bold text-[var(--color-brand-dark)] transition disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[var(--color-brand-dark)] hover:text-white"
     >
       {label}
     </button>
@@ -137,7 +137,7 @@ function CurrencyQuestionCard({
           <button
             type="button"
             onClick={() => onConfirm("Not sure")}
-            className="rounded-full bg-[var(--color-brand-soft-2)] px-4 py-3 font-semibold text-[var(--color-brand-dark)] hover:bg-white"
+            className="rounded-full bg-[var(--color-brand-soft-2)] px-4 py-3 font-semibold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
           >
             Not sure
           </button>
@@ -170,7 +170,7 @@ function YesNoQuestionCard({
             className={`rounded-full px-6 py-3 font-bold transition ${
               rawValue === opt
                 ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]"
-                : "bg-white text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
+                : "bg-[var(--color-cream)] text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
             }`}
           >
             {opt}
@@ -208,7 +208,7 @@ function PillsQuestionCard({
               type="button"
               onClick={() => toggle(opt)}
               className={`rounded-full px-5 py-3 font-bold transition ${
-                active ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]" : "bg-white text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
+                active ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]" : "bg-[var(--color-cream)] text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
               }`}
             >
               {opt}
@@ -255,7 +255,7 @@ function ChecklistQuestionCard({
             <div
               key={item.id}
               className={`flex items-center justify-between gap-4 rounded-xl px-4 py-3.5 ${
-                added ? "bg-white" : "bg-white/60"
+                added ? "bg-[var(--color-brand-soft-2)]" : "bg-[var(--color-cream)]"
               }`}
             >
               <div className="flex items-center gap-3">

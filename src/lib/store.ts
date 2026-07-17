@@ -7,6 +7,8 @@ export interface ChecklistItemState {
   value: string;
 }
 
+export type UtrAnswer = "Yes" | "No" | "Not sure";
+
 interface AppState {
   reasons: string[];
   incomeSources: string[];
@@ -14,6 +16,8 @@ interface AppState {
   checklist: Record<string, ChecklistItemState>;
   categoryIndex: number;
   questionIndex: number;
+  utr: UtrAnswer | null;
+  mtdBannerDismissed: boolean;
 
   toggleReason: (id: string) => void;
   toggleIncomeSource: (id: string) => void;
@@ -21,6 +25,8 @@ interface AppState {
   setChecklistItem: (key: string, added: boolean, value: string) => void;
   setCategoryIndex: (index: number) => void;
   setQuestionIndex: (index: number) => void;
+  setUtr: (value: UtrAnswer) => void;
+  dismissMtdBanner: () => void;
   resetWizard: () => void;
 }
 
@@ -31,6 +37,8 @@ export const useAppStore = create<AppState>((set) => ({
   checklist: {},
   categoryIndex: 0,
   questionIndex: 0,
+  utr: null,
+  mtdBannerDismissed: false,
 
   toggleReason: (id) =>
     set((state) => ({
@@ -56,6 +64,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   setCategoryIndex: (index) => set({ categoryIndex: index }),
   setQuestionIndex: (index) => set({ questionIndex: index }),
+  setUtr: (value) => set({ utr: value }),
+  dismissMtdBanner: () => set({ mtdBannerDismissed: true }),
 
   resetWizard: () =>
     set({
@@ -65,5 +75,7 @@ export const useAppStore = create<AppState>((set) => ({
       checklist: {},
       categoryIndex: 0,
       questionIndex: 0,
+      utr: null,
+      mtdBannerDismissed: false,
     }),
 }));

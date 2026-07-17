@@ -20,7 +20,10 @@ export type IconName =
   | "help-circle"
   | "globe"
   | "user"
-  | "sparkles";
+  | "sparkles"
+  | "clock"
+  | "upload"
+  | "send";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -191,6 +194,31 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
         <>
           <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
           <path d="m6 6 2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18" />
+        </>,
+        props
+      );
+    case "clock":
+      return base(
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 3" />
+        </>,
+        props
+      );
+    case "upload":
+      return base(
+        <>
+          <path d="M12 15V4" />
+          <path d="m7 8 5-4 5 4" />
+          <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+        </>,
+        props
+      );
+    case "send":
+      return base(
+        <>
+          <path d="M21 3 10 14" />
+          <path d="M21 3 14 21l-4-7-7-4Z" />
         </>,
         props
       );

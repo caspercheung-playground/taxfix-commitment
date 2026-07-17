@@ -8,9 +8,16 @@ import { Icon } from "@/components/icons";
 import { Sidebar } from "@/components/wizard/Sidebar";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
-import { categories } from "@/lib/data";
+import { UrgencyStrip } from "@/components/UrgencyStrip";
+import { categories, MTD_INCOME_THRESHOLD } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
-import { answerKey, checklistItemKey, getVisibleQuestions, pseudoUuid } from "@/lib/wizard";
+import {
+  answerKey,
+  checklistItemKey,
+  combinedSeAndRentalIncome,
+  getVisibleQuestions,
+  pseudoUuid,
+} from "@/lib/wizard";
 
 export default function QuestionWizardPage() {
   const router = useRouter();
@@ -25,6 +32,11 @@ export default function QuestionWizardPage() {
   const setChecklistItem = useAppStore((s) => s.setChecklistItem);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
+  const mtdBannerDismissed = useAppStore((s) => s.mtdBannerDismissed);
+  const dismissMtdBanner = useAppStore((s) => s.dismissMtdBanner);
+
+  const showMtdBanner =
+    !mtdBannerDismissed && combinedSeAndRentalIncome(answers) > MTD_INCOME_THRESHOLD;
 
   const activeCategories = useMemo(
     () => categories.filter((c) => incomeSources.includes(c.incomeSourceId)),
@@ -89,7 +101,7 @@ export default function QuestionWizardPage() {
       setCategoryIndex(safeCategoryIndex + 1);
       setQuestionIndex(0);
     } else {
-      router.push("/done");
+      router.push("/recommendation");
     }
   }
 
@@ -104,7 +116,7 @@ export default function QuestionWizardPage() {
           </p>
           <Link
             href="/income-sources"
-            className="rounded-full bg-[var(--color-brand)] px-6 py-3 font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
+            className="rounded-lg bg-[var(--color-brand)] px-6 py-3 font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
           >
             Choose income sources
           </Link>
@@ -127,6 +139,23 @@ export default function QuestionWizardPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header progress={progress} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
+        <UrgencyStrip className="mb-6" />
+        {showMtdBanner && (
+          <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-[var(--color-cream-border)] bg-[var(--color-cream)] px-4 py-3 text-sm">
+            <p>
+              Since your combined income is over £50,000, Making Tax Digital may apply to you from
+              April 2026. We&apos;ll confirm this for you as part of your plan.
+            </p>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={dismissMtdBanner}
+              className="shrink-0 text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+            >
+              <Icon name="x" size={16} />
+            </button>
+          </div>
+        )}
         <div className="mb-6 flex items-center justify-between">
           <button
             type="button"
@@ -134,7 +163,7 @@ export default function QuestionWizardPage() {
             className="inline-flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)] hover:text-[var(--color-ink)]"
           >
             <Icon name="arrow-left" size={16} />
-            Back
+            Back to overview
           </button>
           <div className="flex -space-x-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-brand-dark)] text-xs font-bold text-white ring-2 ring-white">

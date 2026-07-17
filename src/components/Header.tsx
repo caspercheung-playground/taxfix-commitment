@@ -31,7 +31,7 @@ export function Header({ progress }: { progress?: number }) {
       {typeof progress === "number" && (
         <div className="h-[3px] w-full bg-[var(--color-line)]">
           <div
-            className="h-full bg-[var(--color-brand)] transition-all duration-500 ease-out"
+            className="h-full bg-[var(--color-brand-dark)] transition-all duration-500 ease-out"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>
