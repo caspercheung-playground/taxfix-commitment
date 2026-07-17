@@ -316,7 +316,7 @@ export default function RecommendationPage() {
               onMatch={() => setMatched(true)}
             />
 
-            {matched && <HowItWorksReceipt needsUtrRegistration={needsUtrRegistration} />}
+            <HowItWorksReceipt needsUtrRegistration={needsUtrRegistration} />
 
             {(mtd === "under-30k" || mtd === "30k-to-50k") && (
               <p className="mt-6 flex items-start gap-2 px-1 text-sm text-[var(--color-muted)]">
