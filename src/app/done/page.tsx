@@ -15,7 +15,9 @@ export default function DonePage() {
   const checklist = useAppStore((s) => s.checklist);
   const resetWizard = useAppStore((s) => s.resetWizard);
 
-  const activeCategories = categories.filter((c) => incomeSources.includes(c.incomeSourceId));
+  const activeCategories = categories.filter(
+    (c) => !c.incomeSourceId || incomeSources.includes(c.incomeSourceId)
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -31,7 +33,7 @@ export default function DonePage() {
           </div>
         </div>
 
-        {activeCategories.length === 0 ? (
+        {incomeSources.length === 0 ? (
           <p className="mt-8 text-[var(--color-muted)]">No answers were collected yet.</p>
         ) : (
           <div className="mt-8 space-y-6">

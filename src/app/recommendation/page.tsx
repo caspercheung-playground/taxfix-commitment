@@ -7,9 +7,9 @@ import { Header } from "@/components/Header";
 import { Icon, type IconName } from "@/components/icons";
 import { UrgencyStrip } from "@/components/UrgencyStrip";
 import { FlowRail, type RailItem } from "@/components/wizard/FlowRail";
-import { categories, incomeSources, recommendedPlan, TAX_YEAR_LABEL } from "@/lib/data";
+import { categories, incomeSources, mtdMessages, recommendedPlan, TAX_YEAR_LABEL } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
-import { mtdAppliesThisYear } from "@/lib/wizard";
+import { ALLOWANCES_KEY, getUtr, mtdStatus, UTR_KEY } from "@/lib/wizard";
 
 function listOf(items: string[]): string {
   if (items.length <= 1) return items[0] ?? "";
@@ -109,14 +109,15 @@ export default function RecommendationPage() {
   const router = useRouter();
   const selectedSources = useAppStore((s) => s.incomeSources);
   const answers = useAppStore((s) => s.answers);
-  const utr = useAppStore((s) => s.utr);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
 
-  const activeCategories = categories.filter((c) => selectedSources.includes(c.incomeSourceId));
-  const mtdApplies = mtdAppliesThisYear(answers);
+  const activeCategories = categories.filter(
+    (c) => !c.incomeSourceId || selectedSources.includes(c.incomeSourceId)
+  );
+  const mtd = mtdStatus(answers, selectedSources);
   const hasCapitalGains = selectedSources.includes("capital-gains");
-  const needsUtrRegistration = utr === "No";
+  const needsUtrRegistration = getUtr(answers) === "No";
 
   const incomeTypeNames = incomeSources
     .filter((s) => selectedSources.includes(s.id))
@@ -126,11 +127,13 @@ export default function RecommendationPage() {
     needsUtrRegistration ? ", and we'll register your UTR for you" : ""
   }.`;
 
-  function editCategory(index: number) {
+  function editCategory(index: number, qIndex = 0) {
     setCategoryIndex(index);
-    setQuestionIndex(0);
+    setQuestionIndex(qIndex);
     router.push("/tax-years/2025/question");
   }
+
+  const generalIndex = activeCategories.findIndex((c) => c.id === "general");
 
   const railItems: RailItem[] = [
     {
@@ -144,20 +147,35 @@ export default function RecommendationPage() {
       label: "Questions",
       state: "done",
       children: [
-        ...activeCategories.map((category, i) => ({
-          id: category.id,
-          // The rail names income streams the way the picker does, per the design
-          label: incomeSources.find((s) => s.id === category.incomeSourceId)?.title ?? category.title,
-          state: "done" as const,
-          onClick: () => editCategory(i),
-        })),
+        // flatMap, not filter().map() — the income rows' editCategory(i) needs
+        // i to stay the activeCategories index, which "general" sits inside.
+        ...activeCategories.flatMap((category, i) =>
+          category.incomeSourceId
+            ? [
+                {
+                  id: category.id,
+                  // The rail names income streams the way the picker does, per the design
+                  label:
+                    incomeSources.find((s) => s.id === category.incomeSourceId)?.title ??
+                    category.title,
+                  state: "done" as const,
+                  onClick: () => editCategory(i),
+                },
+              ]
+            : []
+        ),
         {
           id: "utr",
           label: "UTR",
-          state: utr ? ("done" as const) : ("active" as const),
-          onClick: () => router.push("/income-sources"),
+          state: answers[UTR_KEY] ? ("done" as const) : ("active" as const),
+          onClick: () => editCategory(generalIndex, 0),
         },
-        { id: "general", label: "General & allowances", state: "active" as const },
+        {
+          id: "allowances",
+          label: "General & allowances",
+          state: answers[ALLOWANCES_KEY] !== undefined ? ("done" as const) : ("active" as const),
+          onClick: () => editCategory(generalIndex, 1),
+        },
       ],
     },
     { id: "matched", label: "Get matched with an accountant", state: "locked", lockedIcon: "user" },
@@ -240,10 +258,14 @@ export default function RecommendationPage() {
               <StepVisual needsUtrRegistration={needsUtrRegistration} />
             </div>
 
-            {!mtdApplies && (
-              <p className="mt-6 flex items-center gap-2 px-1 text-sm text-[var(--color-muted)]">
-                <Icon name="check" size={16} className="shrink-0 text-[var(--color-brand-dark)]" />
-                Making Tax Digital doesn&apos;t apply to you this year.
+            {mtd !== "unknown" && (
+              <p className="mt-6 flex items-start gap-2 px-1 text-sm text-[var(--color-muted)]">
+                <Icon
+                  name={mtd === "50k-plus" ? "help-circle" : "check"}
+                  size={16}
+                  className="mt-0.5 shrink-0 text-[var(--color-brand-dark)]"
+                />
+                {mtdMessages[mtd]}
               </p>
             )}
 

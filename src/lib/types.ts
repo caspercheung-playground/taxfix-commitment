@@ -4,9 +4,9 @@ export type QuestionType =
   | "text"
   | "currency"
   | "yes-no"
+  | "choice"
   | "pills-multi"
-  | "checklist-add"
-  | "income-bracket";
+  | "checklist-add";
 
 export interface BaseQuestion {
   id: string;
@@ -34,13 +34,17 @@ export interface YesNoQuestion extends BaseQuestion {
   type: "yes-no";
 }
 
-export interface IncomeBracketQuestion extends BaseQuestion {
-  type: "income-bracket";
+/** Single-select from a fixed option set — "yes-no" is this with ["Yes", "No"] */
+export interface ChoiceQuestion extends BaseQuestion {
+  type: "choice";
+  options: string[];
 }
 
 export interface PillsMultiQuestion extends BaseQuestion {
   type: "pills-multi";
   options: string[];
+  /** "rows" swaps the pills for full-width Add/Remove rows; defaults to pills */
+  layout?: "pills" | "rows";
 }
 
 export interface ChecklistItemDef {
@@ -59,7 +63,7 @@ export type Question =
   | TextQuestion
   | CurrencyQuestion
   | YesNoQuestion
-  | IncomeBracketQuestion
+  | ChoiceQuestion
   | PillsMultiQuestion
   | ChecklistAddQuestion;
 
@@ -67,21 +71,14 @@ export interface Category {
   id: string;
   title: string;
   icon: IconName;
-  /** Which income source id (see incomeSources) unlocks this category */
-  incomeSourceId: string;
+  /** Which income source id (see incomeSources) unlocks this category; always active when omitted */
+  incomeSourceId?: string;
   questions: Question[];
   doneHeading: string;
   doneSub: string;
 }
 
-export type IncomeBracketId = "under-30k" | "30k-to-50k" | "50k-plus";
-
-export interface IncomeBracket {
-  id: IncomeBracketId;
-  label: string;
-  /** Shown below the options once this bracket is selected */
-  message: string;
-}
+export type UtrAnswer = "Yes" | "No" | "Not sure";
 
 export interface ReasonCard {
   id: string;

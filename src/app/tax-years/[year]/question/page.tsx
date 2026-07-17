@@ -8,16 +8,9 @@ import { Icon } from "@/components/icons";
 import { Sidebar } from "@/components/wizard/Sidebar";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
-import { UrgencyStrip } from "@/components/UrgencyStrip";
 import { categories } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
-import {
-  answerKey,
-  checklistItemKey,
-  getVisibleQuestions,
-  mtdAppliesThisYear,
-  pseudoUuid,
-} from "@/lib/wizard";
+import { answerKey, checklistItemKey, getVisibleQuestions, pseudoUuid } from "@/lib/wizard";
 
 export default function QuestionWizardPage() {
   const router = useRouter();
@@ -32,13 +25,9 @@ export default function QuestionWizardPage() {
   const setChecklistItem = useAppStore((s) => s.setChecklistItem);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
-  const mtdBannerDismissed = useAppStore((s) => s.mtdBannerDismissed);
-  const dismissMtdBanner = useAppStore((s) => s.dismissMtdBanner);
-
-  const showMtdBanner = !mtdBannerDismissed && mtdAppliesThisYear(answers);
 
   const activeCategories = useMemo(
-    () => categories.filter((c) => incomeSources.includes(c.incomeSourceId)),
+    () => categories.filter((c) => !c.incomeSourceId || incomeSources.includes(c.incomeSourceId)),
     [incomeSources]
   );
 
@@ -104,7 +93,9 @@ export default function QuestionWizardPage() {
     }
   }
 
-  if (!category) {
+  // The always-on "general" category means activeCategories is never empty, so
+  // this has to key off the income sources themselves.
+  if (incomeSources.length === 0 || !category) {
     return (
       <div className="flex min-h-screen flex-col bg-white">
         <Header />
@@ -138,23 +129,6 @@ export default function QuestionWizardPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header progress={progress} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
-        <UrgencyStrip className="mb-6" />
-        {showMtdBanner && (
-          <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-[var(--color-cream-border)] bg-[var(--color-cream)] px-4 py-3 text-sm">
-            <p>
-              Since your combined income is over £50,000, Making Tax Digital may apply to you from
-              April 2026. We&apos;ll confirm this for you as part of your plan.
-            </p>
-            <button
-              type="button"
-              aria-label="Dismiss"
-              onClick={dismissMtdBanner}
-              className="shrink-0 text-[var(--color-muted)] hover:text-[var(--color-ink)]"
-            >
-              <Icon name="x" size={16} />
-            </button>
-          </div>
-        )}
         <div className="mb-6 flex items-center justify-between">
           <button
             type="button"

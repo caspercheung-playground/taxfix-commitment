@@ -1,4 +1,4 @@
-import type { Category, IncomeBracket, IncomeSource, ReasonCard } from "./types";
+import type { Category, IncomeSource, ReasonCard } from "./types";
 
 export const TAX_YEAR = "2025";
 export const TAX_YEAR_RANGE = "6 Apr 2025 – 5 Apr 2026";
@@ -30,29 +30,18 @@ export const recommendedPlan = {
 };
 
 /**
- * Income brackets are split on HMRC's Making Tax Digital thresholds — £50,000
- * (applies from April 2026) and £30,000 (applies from April 2027). The spacing
- * is uneven on purpose; the boundaries are regulatory, not presentational.
+ * Keyed on HMRC's Making Tax Digital thresholds — £50,000 (applies from April
+ * 2026) and £30,000 (applies from April 2027). The bands are uneven on purpose;
+ * the boundaries are regulatory, not presentational. Judged on combined
+ * self-employment + property income, never on a single stream — see mtdStatus.
  */
-export const incomeBrackets: IncomeBracket[] = [
-  {
-    id: "under-30k",
-    label: "Under £30,000",
-    message: "You're not affected by Making Tax Digital under current or upcoming rules.",
-  },
-  {
-    id: "30k-to-50k",
-    label: "£30,000 – £49,999",
-    message:
-      "Making Tax Digital doesn't apply to you this year, but will from April 2027 when the threshold drops to £30,000.",
-  },
-  {
-    id: "50k-plus",
-    label: "£50,000 or more",
-    message:
-      "Since your income is over £50,000, Making Tax Digital applies to you from April 2026. We'll confirm this as part of your plan.",
-  },
-];
+export const mtdMessages: Record<"under-30k" | "30k-to-50k" | "50k-plus", string> = {
+  "under-30k": "You're not affected by Making Tax Digital under current or upcoming rules.",
+  "30k-to-50k":
+    "Making Tax Digital doesn't apply to you this year, but will from April 2027 when the threshold drops to £30,000.",
+  "50k-plus":
+    "Since your combined income is over £50,000, Making Tax Digital applies to you from April 2026. We'll confirm this as part of your plan.",
+};
 
 export const reasonCards: ReasonCard[] = [
   { id: "self-employed", label: "I earned money through self-employment", icon: "briefcase" },
@@ -135,10 +124,11 @@ export const categories: Category[] = [
       },
       {
         id: "income-amount",
-        type: "income-bracket",
+        type: "currency",
         sidebarLabel: "Self-employed income",
         prompt: "How much self-employed income did you earn last tax year?",
         helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
+        notSure: true,
       },
       {
         id: "expenses-under-1000",
@@ -202,10 +192,11 @@ export const categories: Category[] = [
       },
       {
         id: "property-income",
-        type: "income-bracket",
+        type: "currency",
         sidebarLabel: "Rental income",
         prompt: "How much rental income did you earn last tax year?",
         helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
+        notSure: true,
       },
       {
         id: "mortgage",
@@ -220,6 +211,40 @@ export const categories: Category[] = [
         prompt: "What was the total amount of expenses from property rental?",
         helper: "An estimate is fine.",
         notSure: true,
+      },
+    ],
+  },
+  // No incomeSourceId, so this always runs — and it must stay last, since its
+  // completion screen is the one that hands off to the recommendation.
+  {
+    id: "general",
+    title: "General",
+    icon: "plus-circle",
+    doneHeading: "That's everything",
+    doneSub: "We've got what we need to find your best plan.",
+    questions: [
+      {
+        id: "utr",
+        type: "choice",
+        sidebarLabel: "UTR",
+        prompt: "Do you already have a UTR (Unique Taxpayer Reference)?",
+        helper: "It's the 10-digit number HMRC gives you when you register for Self Assessment.",
+        options: ["Yes", "No", "Not sure"],
+      },
+      {
+        id: "allowances",
+        type: "pills-multi",
+        layout: "rows",
+        sidebarLabel: "General & allowances",
+        prompt: "And finally, to avoid overpaying your taxes, add all that applied to you",
+        helper: `Between ${TAX_YEAR_RANGE}`,
+        options: [
+          "I made contributions into my pension",
+          "I gave money to charities",
+          "I participated in investment schemes (eg EIS, SEIS, VCT)",
+          "My spouse earned less than £12,500",
+          "I have a student loan or made student loan repayments",
+        ],
       },
     ],
   },

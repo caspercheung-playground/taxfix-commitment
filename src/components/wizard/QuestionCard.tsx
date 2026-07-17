@@ -5,7 +5,6 @@ import type { Category, Question } from "@/lib/types";
 import type { ChecklistItemState } from "@/lib/store";
 import { Icon } from "@/components/icons";
 import { Modal } from "@/components/Modal";
-import { incomeBrackets } from "@/lib/data";
 
 function ContextNote({ note }: { note?: string }) {
   if (!note) return null;
@@ -68,10 +67,24 @@ export function QuestionCard({
     return <CurrencyQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
   }
   if (question.type === "yes-no") {
-    return <YesNoQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
+    return (
+      <ChoiceQuestionCard
+        question={question}
+        options={["Yes", "No"]}
+        rawValue={rawValue}
+        onConfirm={onConfirm}
+      />
+    );
   }
-  if (question.type === "income-bracket") {
-    return <IncomeBracketQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
+  if (question.type === "choice") {
+    return (
+      <ChoiceQuestionCard
+        question={question}
+        options={question.options}
+        rawValue={rawValue}
+        onConfirm={onConfirm}
+      />
+    );
   }
   if (question.type === "pills-multi") {
     return <PillsQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
@@ -123,6 +136,10 @@ function CurrencyQuestionCard({
   onConfirm: (value: string) => void;
 }) {
   const [value, setValue] = useState(rawValue && rawValue !== "Not sure" ? rawValue : "");
+  // Re-opening a "Not sure" answer would otherwise show an empty field with no
+  // trace of the choice, so track it and render the button as selected.
+  const notSure = rawValue === "Not sure" && !value.trim();
+
   return (
     <QuestionShell question={question}>
       <div className="flex flex-wrap items-center gap-3">
@@ -141,7 +158,11 @@ function CurrencyQuestionCard({
           <button
             type="button"
             onClick={() => onConfirm("Not sure")}
-            className="rounded-full bg-[var(--color-brand-soft-2)] px-4 py-3 font-semibold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
+            className={`rounded-full px-4 py-3 font-semibold transition ${
+              notSure
+                ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]"
+                : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
+            }`}
           >
             Not sure
           </button>
@@ -154,19 +175,22 @@ function CurrencyQuestionCard({
   );
 }
 
-function YesNoQuestionCard({
+/** Backs both "yes-no" (options fixed to Yes/No) and "choice" (options from the question) */
+function ChoiceQuestionCard({
   question,
+  options,
   rawValue,
   onConfirm,
 }: {
-  question: Extract<Question, { type: "yes-no" }>;
+  question: Extract<Question, { type: "yes-no" | "choice" }>;
+  options: string[];
   rawValue: string | undefined;
   onConfirm: (value: string) => void;
 }) {
   return (
     <QuestionShell question={question}>
-      <div className="flex gap-3">
-        {["Yes", "No"].map((opt) => (
+      <div className="flex flex-wrap gap-3">
+        {options.map((opt) => (
           <button
             key={opt}
             type="button"
@@ -185,62 +209,6 @@ function YesNoQuestionCard({
   );
 }
 
-function IncomeBracketQuestionCard({
-  question,
-  rawValue,
-  onConfirm,
-}: {
-  question: Extract<Question, { type: "income-bracket" }>;
-  rawValue: string | undefined;
-  onConfirm: (value: string) => void;
-}) {
-  // Held locally rather than confirmed on click so the contextual MTD message
-  // stays on screen instead of the flow advancing past it.
-  const [selected, setSelected] = useState(rawValue ?? "");
-  const message = incomeBrackets.find((b) => b.id === selected)?.message;
-
-  return (
-    <QuestionShell question={question}>
-      <div className="flex flex-col gap-3">
-        {incomeBrackets.map((bracket) => (
-          <button
-            key={bracket.id}
-            type="button"
-            onClick={() => setSelected(bracket.id)}
-            className={`flex items-center gap-3 rounded-2xl border p-4 text-left font-bold transition ${
-              selected === bracket.id
-                ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)]"
-                : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
-            }`}
-          >
-            <span
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
-                selected === bracket.id
-                  ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-dark)] text-white"
-                  : "border-[var(--color-line)] bg-white"
-              }`}
-            >
-              {selected === bracket.id && <Icon name="check" size={14} />}
-            </span>
-            {bracket.label}
-          </button>
-        ))}
-      </div>
-
-      {message && (
-        <p className="mt-4 flex items-start gap-2 rounded-2xl bg-[var(--color-cream)] p-4 text-sm text-[var(--color-muted)]">
-          <Icon name="help-circle" size={16} className="mt-0.5 shrink-0 text-[var(--color-brand-dark)]" />
-          {message}
-        </p>
-      )}
-
-      <div>
-        <NextButton disabled={!selected} onClick={() => onConfirm(selected)} />
-      </div>
-    </QuestionShell>
-  );
-}
-
 function PillsQuestionCard({
   question,
   rawValue,
@@ -252,9 +220,54 @@ function PillsQuestionCard({
 }) {
   const initial = rawValue ? rawValue.split(", ").filter(Boolean) : [];
   const [selected, setSelected] = useState<string[]>(initial);
+  const rows = question.layout === "rows";
 
   function toggle(opt: string) {
     setSelected((prev) => (prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]));
+  }
+
+  if (rows) {
+    return (
+      <QuestionShell question={question}>
+        <div className="space-y-3">
+          {question.options.map((opt) => {
+            const active = selected.includes(opt);
+            return (
+              <div
+                key={opt}
+                className={`flex items-center gap-4 rounded-2xl border p-5 transition ${
+                  active
+                    ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)]"
+                    : "border-transparent bg-[var(--color-cream)]"
+                }`}
+              >
+                <span className="min-w-0 flex-1 font-bold">{opt}</span>
+                <button
+                  type="button"
+                  onClick={() => toggle(opt)}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    active
+                      ? "bg-white text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
+                      : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
+                  }`}
+                >
+                  {active ? "Remove" : "Add"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <div>
+          {/* This is the last question in the flow, so an empty selection must
+              still be able to reach the recommendation. */}
+          <NextButton
+            label={selected.length === 0 ? "None of these apply" : "Next"}
+            onClick={() => onConfirm(selected.join(", "))}
+          />
+        </div>
+      </QuestionShell>
+    );
   }
 
   return (

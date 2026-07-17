@@ -2,7 +2,7 @@
 
 import type { Category, Question } from "@/lib/types";
 import type { ChecklistItemState } from "@/lib/store";
-import { formatDisplayValue } from "@/lib/wizard";
+import { answerKey, formatDisplayValue } from "@/lib/wizard";
 import { Icon } from "@/components/icons";
 
 export function Sidebar({
@@ -22,7 +22,13 @@ export function Sidebar({
   checklist: Record<string, ChecklistItemState>;
   onEdit: (index: number) => void;
 }) {
-  const rows = isComplete ? visibleQuestions.length : Math.min(currentIndex + 1, visibleQuestions.length);
+  // Answered-ness comes from the store, not the cursor: jumping back to an
+  // earlier row must not hide the later rows you've already answered.
+  const isAnswered = (q: Question) => answers[answerKey(category.id, q.id)] !== undefined;
+  const lastAnswered = visibleQuestions.reduce((acc, q, i) => (isAnswered(q) ? i : acc), -1);
+  const rows = isComplete
+    ? visibleQuestions.length
+    : Math.min(Math.max(lastAnswered + 1, currentIndex + 1), visibleQuestions.length);
 
   return (
     <aside className="w-full shrink-0 rounded-3xl bg-[var(--color-cream)] p-6 sm:w-72">
@@ -35,7 +41,7 @@ export function Sidebar({
 
       <ul className="mt-2">
         {visibleQuestions.slice(0, rows).map((q, i) => {
-          const answered = isComplete || i < currentIndex;
+          const answered = isComplete || (isAnswered(q) && i !== currentIndex);
           const value = formatDisplayValue(category, q, answers, checklist);
           return (
             <li key={q.id} className="border-b border-[var(--color-cream-border)] last:border-0">

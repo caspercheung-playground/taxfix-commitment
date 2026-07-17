@@ -1,6 +1,5 @@
-import type { Category, ChecklistItemDef, IncomeBracketId, Question } from "./types";
+import type { Category, ChecklistItemDef, Question, UtrAnswer } from "./types";
 import type { ChecklistItemState } from "./store";
-import { incomeBrackets } from "./data";
 
 export function answerKey(categoryId: string, questionId: string) {
   return `${categoryId}.${questionId}`;
@@ -52,39 +51,63 @@ export function formatDisplayValue(
     return `${rows.length} selected`;
   }
 
+  // Ahead of the !raw guard: "none selected" is a real answer stored as "",
+  // and must read as "None" rather than looking unanswered.
+  if (question.type === "pills-multi" && question.layout === "rows") {
+    if (raw === undefined) return "";
+    const count = raw.split(", ").filter(Boolean).length;
+    return count === 0 ? "None" : `${count} selected`;
+  }
+
   if (!raw) return "";
 
   if (question.type === "currency") {
     return raw === "Not sure" ? "Not sure" : `£${raw}`;
   }
 
-  if (question.type === "income-bracket") {
-    return incomeBrackets.find((b) => b.id === raw)?.label ?? "";
-  }
-
   return raw;
 }
 
-/** Sum of self-employment + rental income entered so far ("Not sure" counts as 0) */
-const INCOME_BRACKET_KEYS = [
-  answerKey("self-employment", "income-amount"),
-  answerKey("property", "property-income"),
-];
+export const UTR_KEY = answerKey("general", "utr");
+export const ALLOWANCES_KEY = answerKey("general", "allowances");
 
-/** Bracket ids the user picked across the self-employment and rental income questions */
-export function selectedIncomeBrackets(answers: Record<string, string>): IncomeBracketId[] {
-  return INCOME_BRACKET_KEYS.map((key) => answers[key]).filter(
-    (id): id is IncomeBracketId => incomeBrackets.some((b) => b.id === id)
-  );
+export function getUtr(answers: Record<string, string>): UtrAnswer | null {
+  const raw = answers[UTR_KEY];
+  return raw === "Yes" || raw === "No" || raw === "Not sure" ? raw : null;
 }
 
+export type MtdStatus = "unknown" | "under-30k" | "30k-to-50k" | "50k-plus";
+
+/** The income figures that feed the MTD threshold, and the stream that puts each in play */
+const MTD_INCOME_QUESTIONS = [
+  { incomeSourceId: "self-employment", key: answerKey("self-employment", "income-amount") },
+  { incomeSourceId: "property", key: answerKey("property", "property-income") },
+];
+
 /**
- * Brackets replaced exact amounts, so this keys off the highest bracket picked
- * rather than a combined total: MTD applies from April 2026 once an income
- * stream is in the £50,000+ bracket.
+ * MTD keys off *combined* self-employment + property income, never a single
+ * stream. Only the streams the user actually picked count — someone who never
+ * selected property must not be held back by its missing figure. "Not sure"
+ * means the figure isn't known, so it yields "unknown" rather than counting
+ * as zero: reporting "you're not affected" off a number we don't have would
+ * be a false statement, not a safe default.
  */
-export function mtdAppliesThisYear(answers: Record<string, string>): boolean {
-  return selectedIncomeBrackets(answers).includes("50k-plus");
+export function mtdStatus(answers: Record<string, string>, incomeSources: string[]): MtdStatus {
+  const inPlay = MTD_INCOME_QUESTIONS.filter((q) => incomeSources.includes(q.incomeSourceId));
+  if (inPlay.length === 0) return "unknown";
+
+  let total = 0;
+  for (const q of inPlay) {
+    const raw = answers[q.key];
+    if (!raw || raw === "Not sure") return "unknown";
+    const amount = Number(raw);
+    if (!Number.isFinite(amount)) return "unknown";
+    total += amount;
+  }
+
+  if (total < 30000) return "under-30k";
+  if (total < 50000) return "30k-to-50k";
+  return "50k-plus";
 }
 
 // Deterministic pseudo-UUID generator, purely cosmetic — mirrors the
