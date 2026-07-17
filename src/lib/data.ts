@@ -42,6 +42,27 @@ export const mtdMessages: Record<"under-30k" | "30k-to-50k" | "50k-plus", string
     "Since your combined income is over £50,000, Making Tax Digital applies to you from April 2026. We'll confirm this as part of your plan.",
 };
 
+export interface EntryReason {
+  id: string;
+  title: string;
+  icon: IncomeSource["icon"];
+  /** When set, choosing this reason pre-selects the matching income source */
+  incomeSourceId?: string;
+}
+
+/** The "What brings you here" onboarding grid — precedes income source selection */
+export const entryReasons: EntryReason[] = [
+  { id: "self-employment", title: "I earned money through self-employment", icon: "briefcase", incomeSourceId: "self-employment" },
+  { id: "tax-relief", title: "I'm claiming a tax relief or refund", icon: "refresh" },
+  { id: "property", title: "I earned income from property", icon: "home", incomeSourceId: "property" },
+  { id: "dividends", title: "I earned dividends or interest", icon: "percent", incomeSourceId: "dividends" },
+  { id: "capital-gains", title: "I earned capital gains", icon: "chart", incomeSourceId: "capital-gains" },
+  { id: "director", title: "I'm a director of a company", icon: "building" },
+  { id: "hmrc-contact", title: "HMRC contacted me about my tax", icon: "mail" },
+  { id: "mtd", title: "I'm affected by Making Tax Digital", icon: "monitor" },
+  { id: "other", title: "Something else applies to me", icon: "umbrella" },
+];
+
 export const incomeSources: IncomeSource[] = [
   {
     id: "employment",
@@ -61,7 +82,7 @@ export const incomeSources: IncomeSource[] = [
   },
   {
     id: "property",
-    title: "Rental income",
+    title: "Property",
     description: "Income from renting or leasing property",
     icon: "home",
   },
@@ -100,21 +121,43 @@ export const categories: Category[] = [
     doneHeading: "Nice one!",
     doneSub: "That's everything for your self-employment income.",
     questions: [
+      // The single source of truth for filer/UTR-registration status — see
+      // the "registered-hmrc" question below and saRegistered in the store.
       {
-        id: "activity",
-        type: "choice",
-        layout: "rows",
+        id: "first-time-filer",
+        type: "yes-no",
+        sidebarLabel: "First-time filer",
+        prompt: "Is this your first time doing Self Assessment?",
+      },
+      {
+        id: "registered-hmrc",
+        type: "yes-no",
+        sidebarLabel: "Registered with HMRC",
+        prompt: "Have you registered for self-employment online at HMRC?",
+        infoButton: {
+          title: "Registering for Self Assessment",
+          body: "If you're newly self-employed, you need to register with HMRC to get a Unique Taxpayer Reference (UTR) before you can file a return. If you're not sure, choose \"No\" and we'll register you as part of your plan.",
+        },
+        banner: "Registration deadline is 5th October 2026",
+      },
+      {
+        id: "start-date",
+        type: "date",
+        sidebarLabel: "Started self-employment",
+        prompt: "When did you start self-employment?",
+      },
+      {
+        id: "work-type",
+        type: "text",
         sidebarLabel: "Type of work",
-        prompt: "What best describes your self-employment?",
-        helper: "Choose one that fits best",
-        options: ["Freelance", "Contract worker", "Construction worker", "Uber driver", "Something else"],
-        icons: ["laptop", "briefcase", "wrench", "car", "umbrella"],
+        prompt: "Describe your type of work",
+        placeholder: "e.g. Freelance product designer, artist selling paintings",
       },
       {
         id: "income-amount",
         type: "currency",
         sidebarLabel: "Self-employed income",
-        prompt: "How much self-employment income did you earn last year?",
+        prompt: "Self-employed income earned last tax year",
         helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
         notSure: true,
       },
@@ -122,40 +165,35 @@ export const categories: Category[] = [
         id: "expenses-under-1000",
         type: "yes-no",
         sidebarLabel: "Expenses under £1,000",
-        prompt: "Were your work-related expenses under £1,000?",
-        contextNote:
-          "Next, we'll ask about some general expenses related to your self-employment. Later you'll be able to enter exact details.",
+        prompt: "Were your total work-related expenses under £1,000?",
+        answerBanner: {
+          Yes: "Good news — as your expenses were under £1,000, we won't need any expense receipts.",
+        },
       },
       {
         id: "expense-types",
         type: "checklist-add",
         sidebarLabel: "Business expenses",
-        prompt: "Let's take a closer look at your business expenses",
-        helper: "Select all that apply, then continue.",
+        prompt: "Let's have a closer look at your business expenses.",
+        helper: "Select all that apply to you.",
         skipIf: (answers) => answers["expenses-under-1000"] === "Yes",
         items: [
           {
-            id: "travel",
-            label: "Business trips, travel to clients or workplace",
-            subPrompt: "How much did you spend on business travel?",
+            id: "business-expenses",
+            label: "Had work-related business expenses (£2,000)",
+            subPrompt: "How much did you spend on business expenses?",
             subType: "currency",
           },
           {
             id: "home",
-            label: "Worked from home",
+            label: "Worked from home whilst self-employed",
             subPrompt: "How many hours a week did you work from home?",
             subType: "number",
           },
           {
             id: "vehicle",
-            label: "Used a car or van for business",
+            label: "Used car or van for business",
             subPrompt: "How much did you spend running your vehicle?",
-            subType: "currency",
-          },
-          {
-            id: "training",
-            label: "Further education and training",
-            subPrompt: "How much did you spend on training?",
             subType: "currency",
           },
         ],
@@ -214,8 +252,9 @@ export const categories: Category[] = [
     doneHeading: "That's everything",
     doneSub: "We've got what we need to find your best plan.",
     questions: [
-      // UTR/registration status is captured once on the welcome screen
-      // (saRegistered in the store) — no question here asks about it.
+      // UTR/registration status is captured once, in the self-employment
+      // questionnaire's "registered-hmrc" question (saRegistered in the
+      // store) — no question here asks about it again.
       {
         id: "allowances",
         type: "pills-multi",

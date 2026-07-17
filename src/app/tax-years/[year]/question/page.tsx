@@ -4,10 +4,9 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
-import { Logo } from "@/components/Logo";
 import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
-import { Sidebar } from "@/components/wizard/Sidebar";
+import { StepNav } from "@/components/wizard/StepNav";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
 import { categories, TAX_YEAR_LABEL } from "@/lib/data";
@@ -27,6 +26,8 @@ export default function QuestionWizardPage() {
   const setChecklistItem = useAppStore((s) => s.setChecklistItem);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
+  const setFirstTimeFiler = useAppStore((s) => s.setFirstTimeFiler);
+  const setSaRegistered = useAppStore((s) => s.setSaRegistered);
 
   const activeCategories = useMemo(
     () => categories.filter((c) => !c.incomeSourceId || incomeSources.includes(c.incomeSourceId)),
@@ -78,6 +79,15 @@ export default function QuestionWizardPage() {
   function handleConfirm(value: string) {
     if (!category || !currentQuestion) return;
     setAnswer(answerKey(category.id, currentQuestion.id), value);
+    // These two self-employment questions are the single source of truth for
+    // filer/UTR-registration status, mirrored into the store fields that
+    // recommendation.tsx (and the receipt view) read directly.
+    if (category.id === "self-employment" && currentQuestion.id === "first-time-filer") {
+      setFirstTimeFiler(value as "Yes" | "No");
+    }
+    if (category.id === "self-employment" && currentQuestion.id === "registered-hmrc") {
+      setSaRegistered(value as "Yes" | "No");
+    }
     setQuestionIndex(questionIndex + 1);
   }
 
@@ -133,7 +143,15 @@ export default function QuestionWizardPage() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Logo />
+            <button
+              type="button"
+              aria-label="Back"
+              onClick={goBack}
+              className="inline-flex items-center gap-2 font-bold text-[var(--color-brand-dark)] hover:text-[var(--color-ink)]"
+            >
+              <Icon name="arrow-left" size={18} />
+              Back
+            </button>
             <span className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
               Tax Year {TAX_YEAR_LABEL}
             </span>
@@ -141,31 +159,25 @@ export default function QuestionWizardPage() {
           <LiveChatPill />
         </div>
 
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={goBack}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)] hover:text-[var(--color-ink)]"
-          >
-            <Icon name="arrow-left" size={16} />
-            Previous session
-          </button>
-        </div>
-
         <div className="flex flex-col gap-6 sm:flex-row">
-          <Sidebar
-            category={category}
-            visibleQuestions={visibleQuestions}
-            currentIndex={questionIndex}
-            isComplete={isComplete}
+          <StepNav
+            activeCategories={activeCategories}
+            currentCategoryIndex={safeCategoryIndex}
             answers={answers}
-            checklist={checklist}
-            onEdit={(i) => setQuestionIndex(i)}
+            onIncomeSources={() => router.push("/income-sources")}
+            onSelectCategory={(i) => {
+              setCategoryIndex(i);
+              setQuestionIndex(0);
+            }}
+            onPlanResult={() => router.push("/recommendation")}
           />
 
           <div className="min-w-0 flex-1">
             {isComplete ? (
               <CategoryComplete
+                category={category}
+                answers={answers}
+                checklist={checklist}
                 heading={category.doneHeading}
                 sub={category.doneSub}
                 nextCategory={nextCategory}
@@ -173,13 +185,13 @@ export default function QuestionWizardPage() {
               />
             ) : currentQuestion ? (
               <QuestionCard
-                key={`${category.id}.${currentQuestion.id}`}
                 category={category}
                 question={currentQuestion}
                 rawValue={answers[answerKey(category.id, currentQuestion.id)]}
                 checklistState={categoryAnswersForChecklist}
                 onConfirm={handleConfirm}
                 onChecklistItemChange={handleChecklistItemChange}
+                onBack={goBack}
               />
             ) : null}
           </div>
