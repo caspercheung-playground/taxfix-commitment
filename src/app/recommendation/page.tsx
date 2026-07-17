@@ -6,13 +6,69 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Icon, type IconName } from "@/components/icons";
 import { UrgencyStrip } from "@/components/UrgencyStrip";
-import { categories, incomeSources, recommendedPlan } from "@/lib/data";
+import { FlowRail, type RailItem } from "@/components/wizard/FlowRail";
+import { categories, incomeSources, recommendedPlan, TAX_YEAR_LABEL } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
-import { formatDisplayValue, getVisibleQuestions, mtdAppliesThisYear } from "@/lib/wizard";
+import { mtdAppliesThisYear } from "@/lib/wizard";
 
 function listOf(items: string[]): string {
   if (items.length <= 1) return items[0] ?? "";
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+function PlanCard({ reasoning }: { reasoning: string }) {
+  const plan = recommendedPlan;
+  return (
+    <div className="relative overflow-hidden rounded-3xl bg-[var(--color-brand-soft)]">
+      <span className="absolute right-0 top-0 rounded-bl-2xl bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-[var(--color-brand-dark)]">
+        {plan.badge}
+      </span>
+
+      <div className="p-6 sm:p-8">
+        <h1 className="pr-28 text-3xl font-extrabold tracking-tight">{plan.name}</h1>
+        <p className="mt-2 text-[var(--color-ink)]">{plan.tagline}</p>
+
+        {/* Why this plan, from the user's own answers */}
+        <p className="mt-3 text-sm font-semibold text-[var(--color-brand-dark)]">{reasoning}</p>
+
+        <hr className="my-5 border-[var(--color-brand-dark)]/15" />
+
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="text-5xl font-extrabold tracking-tight">{plan.price}</span>
+          <span className="text-xl text-[var(--color-muted)]">{plan.period}</span>
+          <span className="rounded-full bg-white px-3 py-1.5 text-sm font-bold text-[var(--color-ink)]">
+            {plan.discount}
+          </span>
+        </div>
+        <p className="mt-2 text-[var(--color-muted)]">{plan.renewal}</p>
+
+        <button
+          type="button"
+          className="mt-5 w-full rounded-lg bg-[var(--color-brand)] px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[var(--color-brand-dark)] hover:text-white"
+        >
+          {plan.cta}
+        </button>
+        <p className="mt-3 text-center text-sm text-[var(--color-ink)]">{plan.socialProof}</p>
+
+        <p className="mt-6 font-bold">{plan.featuresHeading}</p>
+        <ul className="mt-3 space-y-4">
+          {plan.features.map((feature) => (
+            <li key={feature.title} className="flex gap-3">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[var(--color-brand-dark)] text-[var(--color-brand-dark)]">
+                <Icon name="check" size={12} />
+              </span>
+              <div className="min-w-0">
+                <p className="font-bold underline decoration-[var(--color-brand-dark)]/40 underline-offset-4">
+                  {feature.title}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-ink)]">{feature.body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 function StepVisual({ needsUtrRegistration }: { needsUtrRegistration: boolean }) {
@@ -53,7 +109,6 @@ export default function RecommendationPage() {
   const router = useRouter();
   const selectedSources = useAppStore((s) => s.incomeSources);
   const answers = useAppStore((s) => s.answers);
-  const checklist = useAppStore((s) => s.checklist);
   const utr = useAppStore((s) => s.utr);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
@@ -76,6 +131,44 @@ export default function RecommendationPage() {
     setQuestionIndex(0);
     router.push("/tax-years/2025/question");
   }
+
+  const railItems: RailItem[] = [
+    {
+      id: "income-sources",
+      label: "Income sources",
+      state: "done",
+      onClick: () => router.push("/income-sources"),
+    },
+    {
+      id: "questions",
+      label: "Questions",
+      state: "done",
+      children: [
+        ...activeCategories.map((category, i) => ({
+          id: category.id,
+          // The rail names income streams the way the picker does, per the design
+          label: incomeSources.find((s) => s.id === category.incomeSourceId)?.title ?? category.title,
+          state: "done" as const,
+          onClick: () => editCategory(i),
+        })),
+        {
+          id: "utr",
+          label: "UTR",
+          state: utr ? ("done" as const) : ("active" as const),
+          onClick: () => router.push("/income-sources"),
+        },
+        { id: "general", label: "General & allowances", state: "active" as const },
+      ],
+    },
+    { id: "matched", label: "Get matched with an accountant", state: "locked", lockedIcon: "user" },
+    ...(needsUtrRegistration
+      ? [{ id: "register-utr", label: "Register UTR (~2 weeks)", state: "locked" as const }]
+      : []),
+    { id: "documents", label: "Documents", state: "locked" },
+    { id: "submit", label: "Submit to accountant", state: "locked" },
+    { id: "review", label: "Review and approve", state: "locked" },
+    { id: "filed", label: "Filed with HMRC", state: "locked" },
+  ];
 
   if (selectedSources.length === 0) {
     return (
@@ -116,70 +209,21 @@ export default function RecommendationPage() {
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">
-          {/* Left panel: plan summary + editable answer sections */}
-          <aside className="w-full shrink-0 rounded-3xl bg-[var(--color-cream)] p-6 sm:w-72">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-              Recommended plan
-            </p>
-            <p className="mt-1 text-2xl font-extrabold">{recommendedPlan.price}</p>
-            <p className="font-bold text-[var(--color-brand-dark)]">{recommendedPlan.name}</p>
-
-            <div className="mt-5 border-t border-[var(--color-cream-border)] pt-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-                Your answers
-              </p>
-              <ul className="mt-1">
-                <li className="border-b border-[var(--color-cream-border)]">
-                  <Link
-                    href="/income-sources"
-                    className="flex w-full items-center gap-2 py-3.5 text-left"
-                  >
-                    <span className="flex-1 text-sm">UTR</span>
-                    <span className="truncate text-sm text-[var(--color-muted)]">{utr ?? "—"}</span>
-                    <Icon name="chevron-right" size={16} className="shrink-0 text-[var(--color-muted)]" />
-                  </Link>
-                </li>
-                {activeCategories.map((category, i) => (
-                  <li key={category.id} className="border-b border-[var(--color-cream-border)] last:border-0">
-                    <button
-                      type="button"
-                      onClick={() => editCategory(i)}
-                      className="flex w-full items-center gap-2 py-3.5 text-left"
-                    >
-                      <span className="flex-1 text-sm">{category.title}</span>
-                      <span className="truncate text-sm text-[var(--color-muted)]">
-                        {getVisibleQuestions(category, answers)
-                          .slice(0, 1)
-                          .map((q) => formatDisplayValue(category, q, answers, checklist))
-                          .join("") || "—"}
-                      </span>
-                      <Icon name="chevron-right" size={16} className="shrink-0 text-[var(--color-muted)]" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
+          {/* Left panel: where you are in the flow, and a way back into any answer */}
+          <div className="w-full shrink-0 sm:w-80">
+            <FlowRail caption={`Tax year ${TAX_YEAR_LABEL}`} items={railItems} />
             <button
               type="button"
               onClick={() => editCategory(0)}
-              className="mt-4 text-sm font-semibold text-[var(--color-brand-dark)] underline underline-offset-2 hover:text-[var(--color-ink)]"
+              className="mt-4 px-2 text-sm font-semibold text-[var(--color-brand-dark)] underline underline-offset-2 hover:text-[var(--color-ink)]"
             >
               Edit your answers
             </button>
-          </aside>
+          </div>
 
           {/* Main recommendation */}
           <div className="min-w-0 flex-1">
-            <div className="rounded-3xl bg-[var(--color-brand-soft)] p-6 sm:p-8">
-              <p className="text-sm font-semibold uppercase tracking-wide text-[var(--color-brand-dark)]">
-                Best Service for me
-              </p>
-              <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">
-                {recommendedPlan.price} — {recommendedPlan.name}
-              </h1>
-              <p className="mt-3 text-[var(--color-ink)]">{reasoningLine}</p>
-            </div>
+            <PlanCard reasoning={reasoningLine} />
 
             <div className="mt-6 space-y-1 px-1 text-sm text-[var(--color-muted)]">
               <p className="font-semibold text-[var(--color-ink)]">
@@ -203,14 +247,7 @@ export default function RecommendationPage() {
               </p>
             )}
 
-            <button
-              type="button"
-              className="mt-8 w-full rounded-lg bg-[var(--color-brand)] px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[var(--color-brand-dark)] hover:text-white"
-            >
-              Confirm and pay
-            </button>
-
-            <div className="mt-4 flex items-center justify-center gap-6 text-sm font-semibold text-[var(--color-muted)]">
+            <div className="mt-8 flex items-center justify-center gap-6 text-sm font-semibold text-[var(--color-muted)]">
               <button type="button" className="underline underline-offset-2 hover:text-[var(--color-ink)]">
                 Chat now
               </button>

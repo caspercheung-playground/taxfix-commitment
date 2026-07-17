@@ -2,11 +2,31 @@ import type { Category, IncomeBracket, IncomeSource, ReasonCard } from "./types"
 
 export const TAX_YEAR = "2025";
 export const TAX_YEAR_RANGE = "6 Apr 2025 – 5 Apr 2026";
+/** Short form used where the full range doesn't fit, e.g. the flow rail caption */
+export const TAX_YEAR_LABEL = "2025/26";
 
-/** Placeholder until real plan data exists */
+/** The plan the flow recommends — mirrors the "Tax Return Plus" card in the design */
 export const recommendedPlan = {
+  name: "Tax Return Plus",
+  tagline: "Get expert support for complete peace of mind.",
   price: "£149",
-  name: "Filed, Optimised & Protected",
+  period: "/year",
+  discount: "£50 OFF",
+  renewal: "Renews at £199/year. Cancel anytime.",
+  badge: "Most popular",
+  cta: "Match me with an accountant",
+  socialProof: "1100+ users chose it this week",
+  featuresHeading: "All the goodness of Essentials, plus:",
+  features: [
+    {
+      title: "No more HMRC letter fear",
+      body: "Expert support to understand and reply on HMRC requests",
+    },
+    {
+      title: "Don't be alone if HMRC investigates you",
+      body: "Accountant guidance & support should HMRC decide to investigate your return",
+    },
+  ],
 };
 
 /**

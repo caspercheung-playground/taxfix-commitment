@@ -23,7 +23,8 @@ export type IconName =
   | "sparkles"
   | "clock"
   | "upload"
-  | "send";
+  | "send"
+  | "lock";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -186,6 +187,14 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
         <>
           <circle cx="12" cy="8" r="3.5" />
           <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+        </>,
+        props
+      );
+    case "lock":
+      return base(
+        <>
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </>,
         props
       );
