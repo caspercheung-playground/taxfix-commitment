@@ -3,6 +3,7 @@
 import type { Category, Question } from "@/lib/types";
 import type { ChecklistItemState } from "@/lib/store";
 import { answerKey, formatDisplayValue } from "@/lib/wizard";
+import { TAX_YEAR_LABEL } from "@/lib/data";
 import { Icon } from "@/components/icons";
 
 export function Sidebar({
@@ -32,6 +33,9 @@ export function Sidebar({
 
   return (
     <aside className="w-full shrink-0 rounded-3xl bg-[var(--color-cream)] p-6 sm:w-72">
+      <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+        Tax Year {TAX_YEAR_LABEL}
+      </p>
       <div className="flex items-center gap-3 border-b border-[var(--color-cream-border)] pb-4">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[var(--color-brand-dark)]">
           <Icon name={category.icon} size={18} />
@@ -49,7 +53,7 @@ export function Sidebar({
                 type="button"
                 disabled={!answered}
                 onClick={() => onEdit(i)}
-                className={`flex w-full items-center gap-2 py-3.5 text-left ${
+                className={`group flex w-full items-center gap-2 py-3.5 text-left ${
                   answered ? "cursor-pointer" : "cursor-default"
                 }`}
               >
@@ -60,7 +64,12 @@ export function Sidebar({
                 {answered && (
                   <>
                     <span className="truncate text-sm text-[var(--color-muted)]">{value}</span>
-                    <Icon name="chevron-right" size={16} className="shrink-0 text-[var(--color-muted)]" />
+                    {/* Edit affordance surfaces only on hover, on the right of the row */}
+                    <Icon
+                      name="pencil"
+                      size={15}
+                      className="shrink-0 text-[var(--color-brand-dark)] opacity-0 transition-opacity group-hover:opacity-100"
+                    />
                   </>
                 )}
               </button>

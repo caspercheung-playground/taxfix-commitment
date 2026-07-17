@@ -24,7 +24,8 @@ export type IconName =
   | "clock"
   | "upload"
   | "send"
-  | "lock";
+  | "lock"
+  | "pencil";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -195,6 +196,13 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
         <>
           <rect x="3" y="11" width="18" height="11" rx="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </>,
+        props
+      );
+    case "pencil":
+      return base(
+        <>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
         </>,
         props
       );

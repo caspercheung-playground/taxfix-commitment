@@ -4,22 +4,7 @@ import { Icon } from "@/components/icons";
 import type { Category } from "@/lib/types";
 
 function CheckIllustration() {
-  return (
-    <svg viewBox="0 0 200 160" className="mx-auto h-36 w-auto" aria-hidden>
-      <ellipse cx="100" cy="140" rx="70" ry="10" fill="var(--color-cream)" />
-      <g transform="translate(40 15) rotate(-8)">
-        <rect x="0" y="10" width="90" height="90" rx="18" fill="var(--color-brand)" />
-        <path
-          d="M22 58 L45 82 L92 24"
-          fill="none"
-          stroke="var(--color-brand-dark)"
-          strokeWidth="12"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </g>
-    </svg>
-  );
+  return <img src="/check-3d.webp" alt="" aria-hidden className="mx-auto h-36 w-auto" />;
 }
 
 export function CategoryComplete({

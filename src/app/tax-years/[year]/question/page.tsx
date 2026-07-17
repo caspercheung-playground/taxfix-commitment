@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Icon } from "@/components/icons";
+import { LiveChatPill } from "@/components/LiveChatPill";
 import { Sidebar } from "@/components/wizard/Sidebar";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
@@ -136,17 +137,9 @@ export default function QuestionWizardPage() {
             className="inline-flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)] hover:text-[var(--color-ink)]"
           >
             <Icon name="arrow-left" size={16} />
-            Back to overview
+            Previous session
           </button>
-          <div className="flex -space-x-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-brand-dark)] text-xs font-bold text-white ring-2 ring-white">
-              ?
-            </span>
-            <span className="flex items-center gap-1 rounded-full bg-[var(--color-cream)] px-3 py-1.5 text-sm font-semibold">
-              <Icon name="help-circle" size={16} />
-              Help
-            </span>
-          </div>
+          <LiveChatPill />
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">

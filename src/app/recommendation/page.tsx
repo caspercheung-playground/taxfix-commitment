@@ -1,11 +1,11 @@
 "use client";
 
-import { Fragment } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Icon, type IconName } from "@/components/icons";
-import { UrgencyStrip } from "@/components/UrgencyStrip";
+import { LiveChatPill } from "@/components/LiveChatPill";
 import { FlowRail, type RailItem } from "@/components/wizard/FlowRail";
 import { categories, incomeSources, mtdMessages, recommendedPlan, TAX_YEAR_LABEL } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
@@ -16,20 +16,38 @@ function listOf(items: string[]): string {
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
-function PlanCard({ reasoning }: { reasoning: string }) {
+/** How the confirmation rail names each income category, per the design */
+const RAIL_LABELS: Record<string, string> = {
+  "self-employment": "Self Employment",
+  property: "Property Earning",
+};
+
+function PlanCard({
+  bullets,
+  hasCapitalGains,
+  matched,
+  onMatch,
+}: {
+  bullets: string[];
+  hasCapitalGains: boolean;
+  matched: boolean;
+  onMatch: () => void;
+}) {
   const plan = recommendedPlan;
   return (
     <div className="relative overflow-hidden rounded-3xl bg-[var(--color-brand-soft)]">
-      <span className="absolute right-0 top-0 rounded-bl-2xl bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-[var(--color-brand-dark)]">
-        {plan.badge}
-      </span>
-
       <div className="p-6 sm:p-8">
-        <h1 className="pr-28 text-3xl font-extrabold tracking-tight">{plan.name}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{plan.name}</h1>
         <p className="mt-2 text-[var(--color-ink)]">{plan.tagline}</p>
 
-        {/* Why this plan, from the user's own answers */}
-        <p className="mt-3 text-sm font-semibold text-[var(--color-brand-dark)]">{reasoning}</p>
+        <div className="mt-4 rounded-2xl bg-white/50 p-4">
+          <p className="text-sm font-bold text-[var(--color-brand-dark)]">Why we recommend this</p>
+          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-[var(--color-ink)]">
+            {bullets.map((bullet) => (
+              <li key={bullet}>{bullet}</li>
+            ))}
+          </ul>
+        </div>
 
         <hr className="my-5 border-[var(--color-brand-dark)]/15" />
 
@@ -41,12 +59,23 @@ function PlanCard({ reasoning }: { reasoning: string }) {
           </span>
         </div>
         <p className="mt-2 text-[var(--color-muted)]">{plan.renewal}</p>
+        <p className="mt-2 text-sm font-semibold text-[var(--color-ink)]">
+          {plan.price}, fixed — stays that way if your documents are organised when you upload
+          them.
+        </p>
+        {hasCapitalGains && (
+          <p className="mt-1 text-sm text-[var(--color-muted)]">
+            Your plan may cost more if you have capital gains or unorganised records.
+          </p>
+        )}
 
         <button
           type="button"
-          className="mt-5 w-full rounded-lg bg-[var(--color-brand)] px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[var(--color-brand-dark)] hover:text-white"
+          disabled={matched}
+          onClick={onMatch}
+          className="mt-5 w-full rounded-lg bg-[var(--color-brand)] px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[var(--color-brand-dark)] hover:text-white disabled:cursor-default disabled:hover:bg-[var(--color-brand)] disabled:hover:text-[var(--color-brand-dark)]"
         >
-          {plan.cta}
+          {matched ? "We're matching you with an accountant…" : plan.cta}
         </button>
         <p className="mt-3 text-center text-sm text-[var(--color-ink)]">{plan.socialProof}</p>
 
@@ -71,36 +100,76 @@ function PlanCard({ reasoning }: { reasoning: string }) {
   );
 }
 
-function StepVisual({ needsUtrRegistration }: { needsUtrRegistration: boolean }) {
-  const steps: { icon: IconName; label: string }[] = [
+/**
+ * Receipt-style summary of what happens after matching — replaces the old
+ * locked-steps rail. Deliberately non-interactive.
+ */
+function HowItWorksReceipt({ needsUtrRegistration }: { needsUtrRegistration: boolean }) {
+  const steps: { actor: string; label: string; icon: IconName }[] = [
     ...(needsUtrRegistration
-      ? [{ icon: "clock" as IconName, label: "Register for UTR (~2 weeks)" }]
+      ? [{ actor: "Accountant", label: "Register UTR (~2 weeks)", icon: "clock" as IconName }]
       : []),
-    { icon: "upload", label: "Upload documents" },
-    { icon: "user", label: "Accountant reviews" },
-    { icon: "check", label: "You approve" },
-    { icon: "send", label: "We file" },
+    { actor: "You", label: "Upload documents", icon: "upload" },
+    { actor: "Accountant", label: "Review and filing", icon: "user" },
+    { actor: "You", label: "Review and approve", icon: "check" },
+    { actor: "Accountant", label: "File with HMRC", icon: "send" },
   ];
 
   return (
-    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-2">
-      {steps.map((step, i) => (
-        <Fragment key={step.label}>
-          {i > 0 && (
-            <Icon
-              name="arrow-right"
-              size={16}
-              className="hidden shrink-0 text-[var(--color-muted)] sm:mt-3.5 sm:block"
-            />
-          )}
-          <div className="flex items-center gap-3 sm:flex-1 sm:flex-col sm:gap-2 sm:text-center">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]">
-              <Icon name={step.icon} size={20} />
+    <div className="mt-8 rounded-2xl border border-[var(--color-line)] bg-white shadow-sm">
+      <div className="flex items-start justify-between gap-4 p-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+            How it works
+          </p>
+          <p className="mt-1 text-lg font-extrabold">{recommendedPlan.name}</p>
+          <p className="mt-1 text-sm text-[var(--color-muted)]">
+            Matching you with an accountant — usually within 1 business day.
+          </p>
+        </div>
+        <p className="shrink-0 text-lg font-extrabold">
+          {recommendedPlan.price}
+          <span className="text-sm font-semibold text-[var(--color-muted)]">
+            {recommendedPlan.period}
+          </span>
+        </p>
+      </div>
+
+      {/* Perforated receipt divider */}
+      <div className="relative" aria-hidden>
+        <span className="absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-[var(--color-line)] bg-white" />
+        <span className="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-[var(--color-line)] bg-white" />
+        <div className="mx-6 border-t border-dashed border-[var(--color-line)]" />
+      </div>
+
+      <ol className="relative p-6">
+        {/* Timeline line behind the step circles */}
+        <span
+          aria-hidden
+          className="absolute bottom-10 left-[43px] top-10 w-px bg-[var(--color-line)]"
+        />
+        {steps.map((step, i) => (
+          <li key={step.label} className="relative flex items-center gap-4 py-3">
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                i === 0
+                  ? "bg-[#f59e0b] text-white"
+                  : "border border-[var(--color-line)] bg-[var(--color-cream)] text-[var(--color-muted)]"
+              }`}
+            >
+              <Icon name={step.icon} size={17} />
             </span>
-            <span className="text-sm font-semibold">{step.label}</span>
-          </div>
-        </Fragment>
-      ))}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                {step.actor}
+              </p>
+              <p className={`font-bold ${i === 0 ? "" : "text-[var(--color-muted)]"}`}>
+                {step.label}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
@@ -111,6 +180,7 @@ export default function RecommendationPage() {
   const answers = useAppStore((s) => s.answers);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
+  const [matched, setMatched] = useState(false);
 
   const activeCategories = categories.filter(
     (c) => !c.incomeSourceId || selectedSources.includes(c.incomeSourceId)
@@ -119,13 +189,26 @@ export default function RecommendationPage() {
   const hasCapitalGains = selectedSources.includes("capital-gains");
   const needsUtrRegistration = getUtr(answers) === "No";
 
-  const incomeTypeNames = incomeSources
-    .filter((s) => selectedSources.includes(s.id))
+  // Bullets read naturally off the picker's names ("self-employment and
+  // property rental income"), not the rail's title-case labels.
+  const incomeCategoryNames = incomeSources
+    .filter((s) => selectedSources.includes(s.id) && categories.some((c) => c.incomeSourceId === s.id))
     .map((s) => s.title.toLowerCase());
 
-  const reasoningLine = `Recommended because you have ${listOf(incomeTypeNames)}${
-    needsUtrRegistration ? ", and we'll register your UTR for you" : ""
-  }.`;
+  const bullets = [
+    incomeCategoryNames.length > 1
+      ? `You have multiple income streams (${listOf(incomeCategoryNames)}) — one return has to bring them all together.`
+      : `You earn through ${incomeCategoryNames[0] ?? "self-employment"}, which means filing a full Self Assessment return.`,
+    ...(needsUtrRegistration
+      ? [
+          "You'll need UTR support before you can file — we'll register you for Self Assessment. Registering by 5 October avoids delays.",
+        ]
+      : []),
+    ...(mtd === "50k-plus" ? [mtdMessages["50k-plus"]] : []),
+    ...(hasCapitalGains
+      ? ["You have capital gains, which usually need extra care to file correctly."]
+      : []),
+  ];
 
   function editCategory(index: number, qIndex = 0) {
     setCategoryIndex(index);
@@ -154,10 +237,7 @@ export default function RecommendationPage() {
             ? [
                 {
                   id: category.id,
-                  // The rail names income streams the way the picker does, per the design
-                  label:
-                    incomeSources.find((s) => s.id === category.incomeSourceId)?.title ??
-                    category.title,
+                  label: RAIL_LABELS[category.id] ?? category.title,
                   state: "done" as const,
                   onClick: () => editCategory(i),
                 },
@@ -165,27 +245,22 @@ export default function RecommendationPage() {
             : []
         ),
         {
-          id: "utr",
-          label: "UTR",
-          state: answers[UTR_KEY] ? ("done" as const) : ("active" as const),
-          onClick: () => editCategory(generalIndex, 0),
-        },
-        {
           id: "allowances",
-          label: "General & allowances",
+          label: "General & Allowances",
           state: answers[ALLOWANCES_KEY] !== undefined ? ("done" as const) : ("active" as const),
           onClick: () => editCategory(generalIndex, 1),
+          // UTR belongs to General & Allowances, not the top level
+          children: [
+            {
+              id: "utr",
+              label: "UTR",
+              state: answers[UTR_KEY] ? ("done" as const) : ("active" as const),
+              onClick: () => editCategory(generalIndex, 0),
+            },
+          ],
         },
       ],
     },
-    { id: "matched", label: "Get matched with an accountant", state: "locked", lockedIcon: "user" },
-    ...(needsUtrRegistration
-      ? [{ id: "register-utr", label: "Register UTR (~2 weeks)", state: "locked" as const }]
-      : []),
-    { id: "documents", label: "Documents", state: "locked" },
-    { id: "submit", label: "Submit to accountant", state: "locked" },
-    { id: "review", label: "Review and approve", state: "locked" },
-    { id: "filed", label: "Filed with HMRC", state: "locked" },
   ];
 
   if (selectedSources.length === 0) {
@@ -213,8 +288,6 @@ export default function RecommendationPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header progress={100} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
-        <UrgencyStrip className="mb-6" />
-
         <div className="mb-6 flex items-center justify-between">
           <button
             type="button"
@@ -222,14 +295,15 @@ export default function RecommendationPage() {
             className="inline-flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)] hover:text-[var(--color-ink)]"
           >
             <Icon name="arrow-left" size={16} />
-            Back to overview
+            Previous session
           </button>
+          <LiveChatPill />
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">
           {/* Left panel: where you are in the flow, and a way back into any answer */}
           <div className="w-full shrink-0 sm:w-80">
-            <FlowRail caption={`Tax year ${TAX_YEAR_LABEL}`} items={railItems} />
+            <FlowRail caption={`Tax Year ${TAX_YEAR_LABEL}`} items={railItems} />
             <button
               type="button"
               onClick={() => editCategory(0)}
@@ -241,27 +315,19 @@ export default function RecommendationPage() {
 
           {/* Main recommendation */}
           <div className="min-w-0 flex-1">
-            <PlanCard reasoning={reasoningLine} />
+            <PlanCard
+              bullets={bullets}
+              hasCapitalGains={hasCapitalGains}
+              matched={matched}
+              onMatch={() => setMatched(true)}
+            />
 
-            <div className="mt-6 space-y-1 px-1 text-sm text-[var(--color-muted)]">
-              <p className="font-semibold text-[var(--color-ink)]">
-                {recommendedPlan.price}, fixed — stays that way if your documents are organised when
-                you upload them.
-              </p>
-              {hasCapitalGains && (
-                <p>Your plan may cost more if you have capital gains or unorganised records.</p>
-              )}
-            </div>
+            {matched && <HowItWorksReceipt needsUtrRegistration={needsUtrRegistration} />}
 
-            <div className="mt-8 rounded-2xl border border-[var(--color-cream-border)] p-6">
-              <h2 className="font-extrabold">How it works</h2>
-              <StepVisual needsUtrRegistration={needsUtrRegistration} />
-            </div>
-
-            {mtd !== "unknown" && (
+            {(mtd === "under-30k" || mtd === "30k-to-50k") && (
               <p className="mt-6 flex items-start gap-2 px-1 text-sm text-[var(--color-muted)]">
                 <Icon
-                  name={mtd === "50k-plus" ? "help-circle" : "check"}
+                  name="check"
                   size={16}
                   className="mt-0.5 shrink-0 text-[var(--color-brand-dark)]"
                 />
@@ -270,15 +336,22 @@ export default function RecommendationPage() {
             )}
 
             <div className="mt-8 flex items-center justify-center gap-6 text-sm font-semibold text-[var(--color-muted)]">
-              <button type="button" className="underline underline-offset-2 hover:text-[var(--color-ink)]">
-                Chat now
-              </button>
-              <button type="button" className="underline underline-offset-2 hover:text-[var(--color-ink)]">
+              <a
+                href="https://taxfix.com/en-uk/call-me/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-[var(--color-ink)]"
+              >
                 Book a call
-              </button>
-              <button type="button" className="underline underline-offset-2 hover:text-[var(--color-ink)]">
-                See other plans
-              </button>
+              </a>
+              <a
+                href="https://taxfix.com/en-uk/wp-content/uploads/Plans-comparison.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-[var(--color-ink)]"
+              >
+                Compare with other plans
+              </a>
             </div>
           </div>
         </div>

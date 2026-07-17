@@ -13,7 +13,6 @@ export const recommendedPlan = {
   period: "/year",
   discount: "£50 OFF",
   renewal: "Renews at £199/year. Cancel anytime.",
-  badge: "Most popular",
   cta: "Match me with an accountant",
   socialProof: "1100+ users chose it this week",
   featuresHeading: "All the goodness of Essentials, plus:",

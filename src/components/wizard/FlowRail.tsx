@@ -11,7 +11,7 @@ export interface RailItem {
   /** Only read for locked steps — done/active derive their glyph from state */
   lockedIcon?: IconName;
   onClick?: () => void;
-  /** Indented sub-steps; the timeline line runs down beside them, not through them */
+  /** Indented sub-steps, nestable (e.g. UTR sits inside General & Allowances) */
   children?: RailItem[];
 }
 
@@ -50,7 +50,7 @@ function Row({ item, level }: { item: RailItem; level: "top" | "sub" }) {
       disabled={!interactive}
       onClick={item.onClick}
       aria-current={item.state === "active" ? "step" : undefined}
-      className={`relative flex w-full items-center gap-3 rounded-[14px] p-2 text-left transition ${
+      className={`group relative flex w-full items-center gap-3 rounded-[14px] p-2 text-left transition ${
         item.state === "active" ? "bg-[var(--color-brand-soft-2)]/40" : ""
       } ${interactive ? "cursor-pointer hover:bg-[var(--color-cream)]" : "cursor-default"}`}
     >
@@ -60,8 +60,30 @@ function Row({ item, level }: { item: RailItem; level: "top" | "sub" }) {
       >
         <Icon name={glyph} size={level === "top" ? 15 : 13} />
       </span>
-      <span className={`text-sm font-semibold ${label}`}>{item.label}</span>
+      <span className={`flex-1 text-sm font-semibold ${label}`}>{item.label}</span>
+      {interactive && item.state === "done" && (
+        // Edit affordance surfaces only on hover, on the right of the row
+        <Icon
+          name="pencil"
+          size={14}
+          className="shrink-0 text-[var(--color-brand-dark)] opacity-0 transition-opacity group-hover:opacity-100"
+        />
+      )}
     </button>
+  );
+}
+
+/** Sub-steps render one indent level per nesting depth */
+function Branch({ items }: { items: RailItem[] }) {
+  return (
+    <ul className="mb-1 flex flex-col gap-1 pl-8 pt-1">
+      {items.map((child) => (
+        <li key={child.id}>
+          <Row item={child} level="sub" />
+          {!!child.children?.length && <Branch items={child.children} />}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -89,15 +111,7 @@ export function FlowRail({ items, caption }: { items: RailItem[]; caption: strin
                 />
               )}
               <Row item={item} level="top" />
-              {!!item.children?.length && (
-                <ul className="mb-1 flex flex-col gap-1 pl-8 pt-1">
-                  {item.children.map((child) => (
-                    <li key={child.id}>
-                      <Row item={child} level="sub" />
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {!!item.children?.length && <Branch items={item.children} />}
             </li>
           );
         })}

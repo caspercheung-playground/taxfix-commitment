@@ -187,6 +187,10 @@ function ChoiceQuestionCard({
   rawValue: string | undefined;
   onConfirm: (value: string) => void;
 }) {
+  // Selection is held locally and only committed on Next — the flow must not
+  // auto-advance the moment an option is clicked.
+  const [selected, setSelected] = useState(rawValue ?? "");
+
   return (
     <QuestionShell question={question}>
       <div className="flex flex-wrap gap-3">
@@ -194,9 +198,9 @@ function ChoiceQuestionCard({
           <button
             key={opt}
             type="button"
-            onClick={() => onConfirm(opt)}
+            onClick={() => setSelected(opt)}
             className={`rounded-full px-6 py-3 font-bold transition ${
-              rawValue === opt
+              selected === opt
                 ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]"
                 : "bg-[var(--color-cream)] text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
             }`}
@@ -204,6 +208,9 @@ function ChoiceQuestionCard({
             {opt}
           </button>
         ))}
+      </div>
+      <div>
+        <NextButton disabled={!selected} onClick={() => onConfirm(selected)} />
       </div>
     </QuestionShell>
   );
