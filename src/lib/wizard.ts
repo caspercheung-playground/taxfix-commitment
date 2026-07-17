@@ -37,6 +37,18 @@ function checklistItemsFor(
   }));
 }
 
+/** "yes-no-amount" is stored as "No" or "Yes:<amount>" in a single answer slot */
+export function encodeYesNoAmount(yn: "Yes" | "No", amount: string): string {
+  return yn === "Yes" ? `Yes:${amount}` : "No";
+}
+
+export function decodeYesNoAmount(raw: string | undefined): { yn: "Yes" | "No" | null; amount: string } {
+  if (!raw) return { yn: null, amount: "" };
+  if (raw === "No") return { yn: "No", amount: "" };
+  const [yn, amount] = raw.split(":");
+  return { yn: yn === "Yes" ? "Yes" : null, amount: amount ?? "" };
+}
+
 export function formatDisplayValue(
   category: Category,
   question: Question,
@@ -63,6 +75,11 @@ export function formatDisplayValue(
 
   if (question.type === "currency") {
     return raw === "Not sure" ? "Not sure" : `£${raw}`;
+  }
+
+  if (question.type === "yes-no-amount") {
+    const { yn, amount } = decodeYesNoAmount(raw);
+    return yn === "Yes" ? `Yes — £${amount}` : "No";
   }
 
   return raw;

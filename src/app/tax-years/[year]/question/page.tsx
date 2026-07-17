@@ -4,12 +4,13 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
+import { Logo } from "@/components/Logo";
 import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
 import { Sidebar } from "@/components/wizard/Sidebar";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
-import { categories } from "@/lib/data";
+import { categories, TAX_YEAR_LABEL } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
 import { answerKey, checklistItemKey, getVisibleQuestions, pseudoUuid } from "@/lib/wizard";
 
@@ -131,6 +132,16 @@ export default function QuestionWizardPage() {
       <Header progress={progress} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
         <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Logo />
+            <span className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+              Tax Year {TAX_YEAR_LABEL}
+            </span>
+          </div>
+          <LiveChatPill />
+        </div>
+
+        <div className="mb-6">
           <button
             type="button"
             onClick={goBack}
@@ -139,7 +150,6 @@ export default function QuestionWizardPage() {
             <Icon name="arrow-left" size={16} />
             Previous session
           </button>
-          <LiveChatPill />
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">

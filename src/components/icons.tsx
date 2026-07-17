@@ -29,7 +29,9 @@ export type IconName =
   | "laptop"
   | "wrench"
   | "package"
-  | "coins";
+  | "coins"
+  | "car"
+  | "phone";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -272,6 +274,21 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
           <path d="M21 3 10 14" />
           <path d="M21 3 14 21l-4-7-7-4Z" />
         </>,
+        props
+      );
+    case "car":
+      return base(
+        <>
+          <path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13" />
+          <rect x="3" y="13" width="18" height="5" rx="1.5" />
+          <circle cx="7.5" cy="18.5" r="1.5" />
+          <circle cx="16.5" cy="18.5" r="1.5" />
+        </>,
+        props
+      );
+    case "phone":
+      return base(
+        <path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1.1-.2c1.2.5 2.5.8 3.9.8a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1c0 1.4.3 2.7.8 3.9a1 1 0 0 1-.2 1.1L6.6 10.8Z" />,
         props
       );
   }

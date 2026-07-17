@@ -3,7 +3,6 @@
 import type { Category, Question } from "@/lib/types";
 import type { ChecklistItemState } from "@/lib/store";
 import { answerKey, formatDisplayValue } from "@/lib/wizard";
-import { TAX_YEAR_LABEL } from "@/lib/data";
 import { Icon } from "@/components/icons";
 
 export function Sidebar({
@@ -33,9 +32,6 @@ export function Sidebar({
 
   return (
     <aside className="w-full shrink-0 rounded-3xl bg-[var(--color-cream)] p-6 sm:w-72">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-        Tax Year {TAX_YEAR_LABEL}
-      </p>
       <div className="flex items-center gap-3 border-b border-[var(--color-cream-border)] pb-4">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[var(--color-brand-dark)]">
           <Icon name={category.icon} size={18} />

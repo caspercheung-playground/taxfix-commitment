@@ -41,7 +41,7 @@ export function CategoryComplete({
           onClick={onContinue}
           className="shrink-0 rounded-lg bg-[var(--color-brand)] px-5 py-2.5 font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
         >
-          {nextCategory ? "Continue" : "Check"}
+          {nextCategory ? "Continue" : "Check Now"}
         </button>
       </div>
     </div>

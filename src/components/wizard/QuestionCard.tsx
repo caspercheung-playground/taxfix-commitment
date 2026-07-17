@@ -5,6 +5,9 @@ import type { Category, Question } from "@/lib/types";
 import type { ChecklistItemState } from "@/lib/store";
 import { Icon } from "@/components/icons";
 import { Modal } from "@/components/Modal";
+import { SelectableRow } from "@/components/wizard/SelectableRow";
+import { SecondaryYesNo } from "@/components/wizard/SecondaryYesNo";
+import { decodeYesNoAmount, encodeYesNoAmount } from "@/lib/wizard";
 
 function ContextNote({ note }: { note?: string }) {
   if (!note) return null;
@@ -75,6 +78,9 @@ export function QuestionCard({
         onConfirm={onConfirm}
       />
     );
+  }
+  if (question.type === "yes-no-amount") {
+    return <YesNoAmountQuestionCard question={question} rawValue={rawValue} onConfirm={onConfirm} />;
   }
   if (question.type === "choice") {
     return (
@@ -190,27 +196,23 @@ function ChoiceQuestionCard({
   // Selection is held locally and only committed on Next — the flow must not
   // auto-advance the moment an option is clicked.
   const [selected, setSelected] = useState(rawValue ?? "");
-  const cards = question.type === "choice" && question.layout === "cards";
+  const rows = question.type === "choice" && question.layout === "rows";
 
-  if (cards) {
+  if (rows) {
     const icons = question.type === "choice" ? question.icons : undefined;
     return (
       <QuestionShell question={question}>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="space-y-3">
           {options.map((opt, i) => (
-            <button
+            <SelectableRow
               key={opt}
-              type="button"
+              mode="radio"
+              selected={selected === opt}
+              icon={icons?.[i]}
+              iconPosition="left"
+              label={opt}
               onClick={() => setSelected(opt)}
-              className={`flex flex-col items-center justify-start gap-3 rounded-2xl p-5 pt-7 text-center transition ${
-                selected === opt
-                  ? "bg-[var(--color-brand-soft-2)]"
-                  : "bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
-              }`}
-            >
-              <Icon name={icons?.[i] ?? "briefcase"} size={26} />
-              <span className="text-sm font-semibold leading-snug">{opt}</span>
-            </button>
+            />
           ))}
         </div>
         <div>
@@ -257,6 +259,49 @@ function ChoiceQuestionCard({
   );
 }
 
+function YesNoAmountQuestionCard({
+  question,
+  rawValue,
+  onConfirm,
+}: {
+  question: Extract<Question, { type: "yes-no-amount" }>;
+  rawValue: string | undefined;
+  onConfirm: (value: string) => void;
+}) {
+  const initial = decodeYesNoAmount(rawValue);
+  const [yn, setYn] = useState<"Yes" | "No" | "">(initial.yn ?? "");
+  const [amount, setAmount] = useState(initial.amount);
+  const canContinue = yn === "No" || (yn === "Yes" && amount.trim() !== "");
+
+  return (
+    <QuestionShell question={question}>
+      <SecondaryYesNo value={yn} onSelect={setYn} />
+      {yn === "Yes" && (
+        <div className="mt-4">
+          <p className="mb-2 font-semibold">{question.amountPrompt}</p>
+          <div className="flex w-fit overflow-hidden rounded-xl border border-[var(--color-line)]">
+            <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">£</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-40 bg-white px-4 py-3 outline-none"
+              placeholder="0"
+            />
+          </div>
+        </div>
+      )}
+      <div>
+        <NextButton
+          disabled={!canContinue}
+          onClick={() => onConfirm(encodeYesNoAmount(yn as "Yes" | "No", amount.trim()))}
+        />
+      </div>
+    </QuestionShell>
+  );
+}
+
 function PillsQuestionCard({
   question,
   rawValue,
@@ -274,46 +319,29 @@ function PillsQuestionCard({
     setSelected((prev) => (prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]));
   }
 
+  // A multi-select is a valid "none of the above" answer on its own, so the
+  // CTA is always enabled — its label just says which action it performs.
+  const ctaLabel = selected.length === 0 ? "None of this applies" : "Next";
+
   if (rows) {
     return (
       <QuestionShell question={question}>
         <div className="space-y-3">
-          {question.options.map((opt) => {
-            const active = selected.includes(opt);
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => toggle(opt)}
-                className={`flex w-full items-center gap-4 rounded-2xl border p-5 text-left transition ${
-                  active
-                    ? "border-[var(--color-brand)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
-                    : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
-                }`}
-              >
-                <span
-                  aria-hidden
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                    active
-                      ? "bg-[var(--color-brand-dark)] text-white"
-                      : "border-2 border-[var(--color-line)] bg-white"
-                  }`}
-                >
-                  {active && <Icon name="check" size={16} />}
-                </span>
-                <span className="min-w-0 flex-1 font-bold">{opt}</span>
-              </button>
-            );
-          })}
+          {question.options.map((opt, i) => (
+            <SelectableRow
+              key={opt}
+              mode="checkbox"
+              selected={selected.includes(opt)}
+              icon={question.icons?.[i]}
+              iconPosition="left"
+              label={opt}
+              onClick={() => toggle(opt)}
+            />
+          ))}
         </div>
 
         <div>
-          {/* This is the last question in the flow, so an empty selection must
-              still be able to reach the recommendation. */}
-          <NextButton
-            label={selected.length === 0 ? "None of these apply" : "Next"}
-            onClick={() => onConfirm(selected.join(", "))}
-          />
+          <NextButton label={ctaLabel} onClick={() => onConfirm(selected.join(", "))} />
         </div>
       </QuestionShell>
     );
@@ -339,7 +367,7 @@ function PillsQuestionCard({
         })}
       </div>
       <div>
-        <NextButton disabled={selected.length === 0} onClick={() => onConfirm(selected.join(", "))} />
+        <NextButton label={ctaLabel} onClick={() => onConfirm(selected.join(", "))} />
       </div>
     </QuestionShell>
   );
@@ -360,12 +388,13 @@ function ChecklistQuestionCard({
 }) {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [touched, setTouched] = useState(false);
   void category;
 
   const activeItem = question.items.find((i) => i.id === activeItemId);
   const addedCount = question.items.filter((i) => checklistState[i.id]?.added).length;
-  const canContinue = touched || addedCount > 0;
+  // A multi-select is a valid "none of the above" answer on its own, so the
+  // CTA is always enabled — its label just says which action it performs.
+  const ctaLabel = addedCount === 0 ? "None of this applies" : "Next";
 
   return (
     <QuestionShell question={question}>
@@ -393,34 +422,38 @@ function ChecklistQuestionCard({
                   )}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setDraft(state?.value ?? "");
-                  setActiveItemId(item.id);
-                }}
-                className="shrink-0 rounded-full bg-[var(--color-brand-soft-2)] px-4 py-1.5 text-sm font-semibold text-[var(--color-brand-dark)] hover:bg-[var(--color-cream)]"
-              >
-                {added ? "Edit" : "Add"}
-              </button>
+              {added ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraft(state?.value ?? "");
+                    setActiveItemId(item.id);
+                  }}
+                  className="shrink-0 rounded-full bg-[var(--color-brand-soft-2)] px-4 py-1.5 text-sm font-semibold text-[var(--color-brand-dark)] hover:bg-[var(--color-cream)]"
+                >
+                  Edit
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  aria-label={`Add ${item.label}`}
+                  onClick={() => {
+                    setDraft(state?.value ?? "");
+                    setActiveItemId(item.id);
+                  }}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-cream)]"
+                >
+                  <Icon name="plus-circle" size={18} />
+                </button>
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4">
-        <button
-          type="button"
-          onClick={() => setTouched(true)}
-          className="text-sm font-semibold text-[var(--color-muted)] underline underline-offset-2 hover:text-[var(--color-ink)]"
-        >
-          None of these apply
-        </button>
-      </div>
-
       <div>
         <NextButton
-          disabled={!canContinue}
+          label={ctaLabel}
           onClick={() => onConfirm(addedCount > 0 ? `${addedCount} selected` : "None")}
         />
       </div>

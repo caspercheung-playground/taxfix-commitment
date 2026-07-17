@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
+import { Logo } from "@/components/Logo";
 import { Modal } from "@/components/Modal";
 import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
+import { SelectableRow } from "@/components/wizard/SelectableRow";
 import { incomeSources, TAX_YEAR_LABEL } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
 
@@ -22,13 +24,14 @@ export default function IncomeSourcesPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
-        <div className="mb-6 flex items-center justify-end">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Logo />
+            <span className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+              Tax Year {TAX_YEAR_LABEL}
+            </span>
+          </div>
           <LiveChatPill />
-        </div>
-
-        <div className="mb-6 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-          <Icon name="arrow-left" size={16} />
-          Tax Year / {TAX_YEAR_LABEL}
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">
@@ -74,9 +77,14 @@ export default function IncomeSourcesPage() {
               {incomeSources.map((source) => {
                 const isSelected = selected.includes(source.id);
                 return (
-                  <button
+                  <SelectableRow
                     key={source.id}
-                    type="button"
+                    mode="checkbox"
+                    selected={isSelected}
+                    icon={source.icon}
+                    iconPosition="right"
+                    label={source.title}
+                    description={source.description}
                     onClick={() => {
                       if (!isSelected && source.confirm) {
                         setConfirmFor(source.id);
@@ -84,27 +92,7 @@ export default function IncomeSourcesPage() {
                       }
                       toggleIncomeSource(source.id);
                     }}
-                    className={`flex w-full items-center gap-4 rounded-2xl border p-5 text-left transition ${
-                      isSelected
-                        ? "border-[var(--color-brand)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
-                        : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
-                    }`}
-                  >
-                    {/* Selection replaces the option's icon */}
-                    <span
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                        isSelected
-                          ? "bg-[var(--color-brand-dark)] text-white"
-                          : "text-[var(--color-ink)]"
-                      }`}
-                    >
-                      <Icon name={isSelected ? "check" : source.icon} size={20} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <span className="font-bold">{source.title}</span>
-                      <p className="mt-0.5 text-sm text-[var(--color-muted)]">{source.description}</p>
-                    </div>
-                  </button>
+                  />
                 );
               })}
             </div>

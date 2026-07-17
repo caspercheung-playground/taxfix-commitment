@@ -103,17 +103,12 @@ export const categories: Category[] = [
       {
         id: "activity",
         type: "choice",
-        layout: "cards",
+        layout: "rows",
         sidebarLabel: "Type of work",
         prompt: "What best describes your self-employment?",
         helper: "Choose one that fits best",
-        options: [
-          "Freelancer / Contract worker",
-          "Construction worker (CIS)",
-          "Courier or driver (Uber, Deliveroo, etc.)",
-          "Something else",
-        ],
-        icons: ["laptop", "wrench", "package", "umbrella"],
+        options: ["Freelance", "Contract worker", "Construction worker", "Uber driver", "Something else"],
+        icons: ["laptop", "briefcase", "wrench", "car", "umbrella"],
       },
       {
         id: "income-amount",
@@ -178,10 +173,12 @@ export const categories: Category[] = [
       {
         id: "property-type",
         type: "pills-multi",
+        layout: "rows",
         sidebarLabel: "Property income type",
         prompt: "What type of property income did you receive?",
         helper: "Select all that apply",
         options: ["Rented a flat or house", "Rented a room", "Furnished holiday let"],
+        icons: ["home", "building", "umbrella"],
       },
       {
         id: "property-income",
@@ -193,9 +190,10 @@ export const categories: Category[] = [
       },
       {
         id: "mortgage",
-        type: "yes-no",
+        type: "yes-no-amount",
         sidebarLabel: "Mortgage on property",
         prompt: "Do you have a mortgage on the property you rented out?",
+        amountPrompt: "How much mortgage interest did you pay?",
       },
       {
         id: "property-expenses",
@@ -211,7 +209,7 @@ export const categories: Category[] = [
   // completion screen is the one that hands off to the recommendation.
   {
     id: "general",
-    title: "General",
+    title: "General and Allowances",
     icon: "plus-circle",
     doneHeading: "That's everything",
     doneSub: "We've got what we need to find your best plan.",

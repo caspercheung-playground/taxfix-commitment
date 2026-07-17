@@ -4,6 +4,7 @@ export type QuestionType =
   | "text"
   | "currency"
   | "yes-no"
+  | "yes-no-amount"
   | "choice"
   | "pills-multi"
   | "checklist-add";
@@ -34,21 +35,30 @@ export interface YesNoQuestion extends BaseQuestion {
   type: "yes-no";
 }
 
+/** Yes/No, and — only when "Yes" — an inline amount capture on the same screen */
+export interface YesNoAmountQuestion extends BaseQuestion {
+  type: "yes-no-amount";
+  /** Label shown above the amount field once "Yes" is selected */
+  amountPrompt: string;
+}
+
 /** Single-select from a fixed option set — "yes-no" is this with ["Yes", "No"] */
 export interface ChoiceQuestion extends BaseQuestion {
   type: "choice";
   options: string[];
-  /** "cards" renders an icon-card grid instead of pills */
-  layout?: "pills" | "cards";
-  /** Parallel to options; only read when layout === "cards" */
+  /** "rows" renders a row-list (selector + icon on the left); defaults to pills */
+  layout?: "pills" | "rows";
+  /** Parallel to options; only read when layout === "rows" */
   icons?: IconName[];
 }
 
 export interface PillsMultiQuestion extends BaseQuestion {
   type: "pills-multi";
   options: string[];
-  /** "rows" swaps the pills for full-width Add/Remove rows; defaults to pills */
+  /** "rows" swaps the pills for full-width selectable rows; defaults to pills */
   layout?: "pills" | "rows";
+  /** Parallel to options; only read when layout === "rows" */
+  icons?: IconName[];
 }
 
 export interface ChecklistItemDef {
@@ -67,6 +77,7 @@ export type Question =
   | TextQuestion
   | CurrencyQuestion
   | YesNoQuestion
+  | YesNoAmountQuestion
   | ChoiceQuestion
   | PillsMultiQuestion
   | ChecklistAddQuestion;

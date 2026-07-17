@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Icon, type IconName } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
-import { FlowRail, type RailItem } from "@/components/wizard/FlowRail";
-import { categories, incomeSources, mtdMessages, recommendedPlan, TAX_YEAR_LABEL } from "@/lib/data";
+import { categories, incomeSources, mtdMessages, recommendedPlan } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
 import { ALLOWANCES_KEY, mtdStatus } from "@/lib/wizard";
 
@@ -18,8 +17,8 @@ function listOf(items: string[]): string {
 
 /** How the confirmation rail names each income category, per the design */
 const RAIL_LABELS: Record<string, string> = {
-  "self-employment": "Self Employment",
-  property: "Property Earning",
+  "self-employment": "Self-employment",
+  property: "Property rental income",
 };
 
 function PlanCard({
@@ -37,7 +36,10 @@ function PlanCard({
   return (
     <div className="relative overflow-hidden rounded-3xl bg-[var(--color-brand-soft)]">
       <div className="p-6 sm:p-8">
-        <h1 className="text-3xl font-extrabold tracking-tight">{plan.name}</h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-brand-dark)]">
+          Recommended Plan
+        </p>
+        <h1 className="mt-1 text-3xl font-extrabold tracking-tight">{plan.name}</h1>
         <p className="mt-2 text-[var(--color-ink)]">{plan.tagline}</p>
 
         <div className="mt-4 rounded-2xl bg-white/50 p-4">
@@ -174,6 +176,70 @@ function HowItWorksReceipt({ needsUtrRegistration }: { needsUtrRegistration: boo
   );
 }
 
+type WhereWeAreState = "done" | "active-orange" | "pending";
+
+interface WhereWeAreRowSpec {
+  id: string;
+  label: string;
+  status: "Completed" | "Incomplete";
+  state: WhereWeAreState;
+  onClick?: () => void;
+}
+
+/**
+ * "Where we are" — the confirmation page's left panel. A flat, receipt-style
+ * status list rather than the wizard's locked-steps rail: every row here is
+ * already reachable, so there's nothing to lock. Orange is reserved for the
+ * one step that's genuinely still open — matching with an accountant.
+ */
+function WhereWeAreRow({ label, status, state, onClick }: WhereWeAreRowSpec) {
+  const interactive = !!onClick;
+  const circle =
+    state === "done"
+      ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]"
+      : state === "active-orange"
+        ? "bg-[#f59e0b] text-white"
+        : "border-2 border-[var(--color-line)] bg-white";
+  const glyph: IconName = state === "active-orange" ? "arrow-right" : "check";
+
+  return (
+    <button
+      type="button"
+      disabled={!interactive}
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 rounded-xl p-2 text-left transition ${
+        interactive ? "cursor-pointer hover:bg-[var(--color-cream)]" : "cursor-default"
+      }`}
+    >
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${circle}`}>
+        {state !== "pending" && <Icon name={glyph} size={15} />}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold">{label}</p>
+        <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">{status}</p>
+      </div>
+      {interactive && <Icon name="chevron-right" size={16} className="shrink-0 text-[var(--color-muted)]" />}
+    </button>
+  );
+}
+
+function WhereWeAreCard({ rows }: { rows: WhereWeAreRowSpec[] }) {
+  return (
+    <aside className="w-full shrink-0 rounded-2xl bg-white p-5 shadow-[0_1px_1.5px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.1)] sm:w-80">
+      <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+        Where we are
+      </p>
+      <div className="divide-y divide-[var(--color-cream-border)]">
+        {rows.map((row) => (
+          <Fragment key={row.id}>
+            <WhereWeAreRow {...row} />
+          </Fragment>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
 export default function RecommendationPage() {
   const router = useRouter();
   const selectedSources = useAppStore((s) => s.incomeSources);
@@ -220,40 +286,46 @@ export default function RecommendationPage() {
   }
 
   const generalIndex = activeCategories.findIndex((c) => c.id === "general");
+  const generalCategory = activeCategories[generalIndex];
+  const allowancesDone = answers[ALLOWANCES_KEY] !== undefined;
 
-  const railItems: RailItem[] = [
+  // flatMap, not filter().map() — editCategory(i) needs i to stay the
+  // activeCategories index, which "general" sits inside.
+  const incomeRows: WhereWeAreRowSpec[] = activeCategories.flatMap((category, i) =>
+    category.incomeSourceId
+      ? [
+          {
+            id: category.id,
+            label: RAIL_LABELS[category.id] ?? category.title,
+            status: "Completed" as const,
+            state: "done" as const,
+            onClick: () => editCategory(i),
+          },
+        ]
+      : []
+  );
+
+  const whereWeAreRows: WhereWeAreRowSpec[] = [
     {
-      id: "income-sources",
-      label: "Income sources",
+      id: "onboarding",
+      label: "Onboarding",
+      status: "Completed",
       state: "done",
-      onClick: () => router.push("/income-sources"),
+      onClick: () => router.push("/choose-tax-tool"),
+    },
+    ...incomeRows,
+    {
+      id: "allowances",
+      label: generalCategory?.title ?? "General and Allowances",
+      status: allowancesDone ? "Completed" : "Incomplete",
+      state: allowancesDone ? "done" : "pending",
+      onClick: () => editCategory(generalIndex, 0),
     },
     {
-      id: "questions",
-      label: "Questions",
-      state: "done",
-      children: [
-        // flatMap, not filter().map() — the income rows' editCategory(i) needs
-        // i to stay the activeCategories index, which "general" sits inside.
-        ...activeCategories.flatMap((category, i) =>
-          category.incomeSourceId
-            ? [
-                {
-                  id: category.id,
-                  label: RAIL_LABELS[category.id] ?? category.title,
-                  state: "done" as const,
-                  onClick: () => editCategory(i),
-                },
-              ]
-            : []
-        ),
-        {
-          id: "allowances",
-          label: "General & Allowances",
-          state: answers[ALLOWANCES_KEY] !== undefined ? ("done" as const) : ("active" as const),
-          onClick: () => editCategory(generalIndex, 0),
-        },
-      ],
+      id: "match",
+      label: "Match with Accountant",
+      status: matched ? "Completed" : "Incomplete",
+      state: matched ? "done" : "active-orange",
     },
   ];
 
@@ -291,20 +363,24 @@ export default function RecommendationPage() {
             <Icon name="arrow-left" size={16} />
             Previous session
           </button>
-          <LiveChatPill />
+          <div className="flex items-center gap-3">
+            <a
+              href="https://taxfix.com/en-uk/call-me/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-full bg-[var(--color-cream)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--color-cream-border)]"
+            >
+              <Icon name="phone" size={16} />
+              Book a call
+            </a>
+            <LiveChatPill />
+          </div>
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">
-          {/* Left panel: where you are in the flow, and a way back into any answer */}
+          {/* Left panel: a receipt of where you are in the flow */}
           <div className="w-full shrink-0 sm:w-80">
-            <FlowRail caption={`Tax Year ${TAX_YEAR_LABEL}`} items={railItems} />
-            <button
-              type="button"
-              onClick={() => editCategory(0)}
-              className="mt-4 px-2 text-sm font-semibold text-[var(--color-brand-dark)] underline underline-offset-2 hover:text-[var(--color-ink)]"
-            >
-              Edit your answers
-            </button>
+            <WhereWeAreCard rows={whereWeAreRows} />
           </div>
 
           {/* Main recommendation */}
@@ -329,15 +405,7 @@ export default function RecommendationPage() {
               </p>
             )}
 
-            <div className="mt-8 flex items-center justify-center gap-6 text-sm font-semibold text-[var(--color-muted)]">
-              <a
-                href="https://taxfix.com/en-uk/call-me/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline underline-offset-2 hover:text-[var(--color-ink)]"
-              >
-                Book a call
-              </a>
+            <div className="mt-8 flex items-center justify-center text-sm font-semibold text-[var(--color-muted)]">
               <a
                 href="https://taxfix.com/en-uk/wp-content/uploads/Plans-comparison.pdf"
                 target="_blank"
