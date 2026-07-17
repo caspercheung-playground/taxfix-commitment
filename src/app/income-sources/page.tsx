@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
 import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
-import { incomeSources, TAX_YEAR_LABEL, TAX_YEAR_RANGE } from "@/lib/data";
+import { incomeSources, TAX_YEAR_LABEL } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
 
 export default function IncomeSourcesPage() {
@@ -62,69 +62,60 @@ export default function IncomeSourcesPage() {
 
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Select all the ways you earned income this tax year
+              First, select where your income comes from in the tax year 2025-2026
             </h1>
             <p className="mt-2 text-[var(--color-muted)]">
-              Choose all that applied to you between {TAX_YEAR_RANGE}.
+              Choose all that apply between 6 Apr 2025 - 5 Apr 2026
             </p>
 
             <div className="mt-8 space-y-3">
-          {incomeSources.map((source) => {
-            const isSelected = selected.includes(source.id);
-            return (
-              <div
-                key={source.id}
-                className={`flex items-center gap-4 rounded-2xl border p-5 transition ${
-                  isSelected
-                    ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)]"
-                    : "border-transparent bg-[var(--color-cream)]"
-                }`}
-              >
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                    isSelected ? "bg-[var(--color-brand-dark)] text-white" : "bg-white text-[var(--color-ink)]"
-                  }`}
-                >
-                  <Icon name={isSelected ? "check" : source.icon} size={18} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold">{source.title}</span>
-                    {source.tag && (
-                      <span className="rounded-full bg-[var(--color-brand-dark)] px-2.5 py-0.5 text-xs font-semibold text-white">
-                        {source.tag}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-0.5 text-sm text-[var(--color-muted)]">{source.description}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isSelected) {
+              {incomeSources.map((source) => {
+                const isSelected = selected.includes(source.id);
+                return (
+                  <button
+                    key={source.id}
+                    type="button"
+                    onClick={() => {
+                      if (!isSelected && source.confirm) {
+                        setConfirmFor(source.id);
+                        return;
+                      }
                       toggleIncomeSource(source.id);
-                      return;
-                    }
-                    if (source.confirm) {
-                      setConfirmFor(source.id);
-                      return;
-                    }
-                    toggleIncomeSource(source.id);
-                  }}
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    isSelected
-                      ? "bg-white text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
-                      : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
-                  }`}
-                >
-                  {isSelected ? "Remove" : "Add"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                    }}
+                    className={`flex w-full items-center gap-4 rounded-2xl border p-5 text-left transition ${
+                      isSelected
+                        ? "border-[var(--color-brand)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
+                        : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
+                    }`}
+                  >
+                    {/* Selection replaces the option's icon */}
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                        isSelected
+                          ? "bg-[var(--color-brand-dark)] text-white"
+                          : "text-[var(--color-ink)]"
+                      }`}
+                    >
+                      <Icon name={isSelected ? "check" : source.icon} size={20} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <span className="font-bold">{source.title}</span>
+                      <p className="mt-0.5 text-sm text-[var(--color-muted)]">{source.description}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-            <div className="mt-10 flex justify-end">
+            <div className="mt-10 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => router.push("/choose-tax-tool")}
+                className="inline-flex items-center gap-2 font-bold text-[var(--color-brand-dark)] hover:text-[var(--color-ink)]"
+              >
+                <Icon name="arrow-left" size={18} />
+                Back
+              </button>
               <button
                 type="button"
                 disabled={!canContinue}

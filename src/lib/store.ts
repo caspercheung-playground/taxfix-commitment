@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import type { WelcomeAnswer } from "./types";
 
 export interface ChecklistItemState {
   added: boolean;
@@ -8,15 +9,22 @@ export interface ChecklistItemState {
 }
 
 interface AppState {
-  reasons: string[];
+  /** Welcome screen: "Is this your first time doing Self Assessment?" */
+  firstTimeFiler: WelcomeAnswer | null;
+  /**
+   * Welcome screen: "Have you registered for Self Assessment online?"
+   * The single source of truth for UTR status — "No" means
+   * not-yet-registered/no UTR everywhere downstream.
+   */
+  saRegistered: WelcomeAnswer | null;
   incomeSources: string[];
-  /** UTR now lives here too, under wizard.UTR_KEY — see getUtr */
   answers: Record<string, string>;
   checklist: Record<string, ChecklistItemState>;
   categoryIndex: number;
   questionIndex: number;
 
-  toggleReason: (id: string) => void;
+  setFirstTimeFiler: (value: WelcomeAnswer) => void;
+  setSaRegistered: (value: WelcomeAnswer) => void;
   toggleIncomeSource: (id: string) => void;
   setAnswer: (key: string, value: string) => void;
   setChecklistItem: (key: string, added: boolean, value: string) => void;
@@ -26,19 +34,16 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  reasons: [],
+  firstTimeFiler: null,
+  saRegistered: null,
   incomeSources: [],
   answers: {},
   checklist: {},
   categoryIndex: 0,
   questionIndex: 0,
 
-  toggleReason: (id) =>
-    set((state) => ({
-      reasons: state.reasons.includes(id)
-        ? state.reasons.filter((r) => r !== id)
-        : [...state.reasons, id],
-    })),
+  setFirstTimeFiler: (value) => set({ firstTimeFiler: value }),
+  setSaRegistered: (value) => set({ saRegistered: value }),
 
   toggleIncomeSource: (id) =>
     set((state) => ({
@@ -60,7 +65,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   resetWizard: () =>
     set({
-      reasons: [],
+      firstTimeFiler: null,
+      saRegistered: null,
       incomeSources: [],
       answers: {},
       checklist: {},

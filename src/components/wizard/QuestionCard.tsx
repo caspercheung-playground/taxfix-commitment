@@ -190,24 +190,65 @@ function ChoiceQuestionCard({
   // Selection is held locally and only committed on Next — the flow must not
   // auto-advance the moment an option is clicked.
   const [selected, setSelected] = useState(rawValue ?? "");
+  const cards = question.type === "choice" && question.layout === "cards";
+
+  if (cards) {
+    const icons = question.type === "choice" ? question.icons : undefined;
+    return (
+      <QuestionShell question={question}>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {options.map((opt, i) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setSelected(opt)}
+              className={`flex flex-col items-center justify-start gap-3 rounded-2xl p-5 pt-7 text-center transition ${
+                selected === opt
+                  ? "bg-[var(--color-brand-soft-2)]"
+                  : "bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
+              }`}
+            >
+              <Icon name={icons?.[i] ?? "briefcase"} size={26} />
+              <span className="text-sm font-semibold leading-snug">{opt}</span>
+            </button>
+          ))}
+        </div>
+        <div>
+          <NextButton disabled={!selected} onClick={() => onConfirm(selected)} />
+        </div>
+      </QuestionShell>
+    );
+  }
 
   return (
     <QuestionShell question={question}>
       <div className="flex flex-wrap gap-3">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => setSelected(opt)}
-            className={`rounded-full px-6 py-3 font-bold transition ${
-              selected === opt
-                ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]"
-                : "bg-[var(--color-cream)] text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
+        {options.map((opt) => {
+          const active = selected === opt;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setSelected(opt)}
+              className={`flex items-center gap-2.5 rounded-full border px-5 py-3 font-bold transition ${
+                active
+                  ? "border-[var(--color-brand)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
+                  : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
+              }`}
+            >
+              {/* Single-choice options always carry a selector */}
+              <span
+                aria-hidden
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                  active ? "border-[var(--color-brand-dark)]" : "border-[var(--color-line)] bg-white"
+                }`}
+              >
+                {active && <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-brand-dark)]" />}
+              </span>
+              {opt}
+            </button>
+          );
+        })}
       </div>
       <div>
         <NextButton disabled={!selected} onClick={() => onConfirm(selected)} />
@@ -240,27 +281,28 @@ function PillsQuestionCard({
           {question.options.map((opt) => {
             const active = selected.includes(opt);
             return (
-              <div
+              <button
                 key={opt}
-                className={`flex items-center gap-4 rounded-2xl border p-5 transition ${
+                type="button"
+                onClick={() => toggle(opt)}
+                className={`flex w-full items-center gap-4 rounded-2xl border p-5 text-left transition ${
                   active
-                    ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)]"
-                    : "border-transparent bg-[var(--color-cream)]"
+                    ? "border-[var(--color-brand)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
+                    : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
                 }`}
               >
-                <span className="min-w-0 flex-1 font-bold">{opt}</span>
-                <button
-                  type="button"
-                  onClick={() => toggle(opt)}
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                <span
+                  aria-hidden
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
                     active
-                      ? "bg-white text-[var(--color-ink)] hover:bg-[var(--color-cream-border)]"
-                      : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
+                      ? "bg-[var(--color-brand-dark)] text-white"
+                      : "border-2 border-[var(--color-line)] bg-white"
                   }`}
                 >
-                  {active ? "Remove" : "Add"}
-                </button>
-              </div>
+                  {active && <Icon name="check" size={16} />}
+                </span>
+                <span className="min-w-0 flex-1 font-bold">{opt}</span>
+              </button>
             );
           })}
         </div>

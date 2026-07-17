@@ -1,4 +1,4 @@
-import type { Category, IncomeSource, ReasonCard } from "./types";
+import type { Category, IncomeSource } from "./types";
 
 export const TAX_YEAR = "2025";
 export const TAX_YEAR_RANGE = "6 Apr 2025 – 5 Apr 2026";
@@ -42,30 +42,11 @@ export const mtdMessages: Record<"under-30k" | "30k-to-50k" | "50k-plus", string
     "Since your combined income is over £50,000, Making Tax Digital applies to you from April 2026. We'll confirm this as part of your plan.",
 };
 
-export const reasonCards: ReasonCard[] = [
-  { id: "self-employed", label: "I earned money through self-employment", icon: "briefcase" },
-  { id: "relief", label: "I'm claiming a tax relief or refund", icon: "refresh" },
-  { id: "property", label: "I earned income from property", icon: "home" },
-  { id: "dividends", label: "I earned dividends or interest", icon: "percent" },
-  { id: "capital-gains", label: "I earned capital gains", icon: "chart" },
-  { id: "director", label: "I'm a director of a company", icon: "building" },
-  { id: "hmrc-letter", label: "HMRC contacted me about my tax", icon: "mail" },
-  { id: "mtd", label: "I'm affected by Making Tax Digital", icon: "monitor" },
-  { id: "other", label: "Something else applies to me", icon: "umbrella" },
-];
-
-/** Maps a reason card id to the income source it should pre-select */
-export const reasonToIncomeSource: Record<string, string> = {
-  "self-employed": "self-employment",
-  property: "property",
-  "capital-gains": "capital-gains",
-};
-
 export const incomeSources: IncomeSource[] = [
   {
     id: "employment",
     title: "Employment",
-    description: "Salaried employee for a company (pick even if tax has already been deducted)",
+    description: "Salaried employee for a company",
     icon: "briefcase",
     confirm: {
       question: `Did you earn any salary through employment between ${TAX_YEAR_RANGE}?`,
@@ -75,31 +56,36 @@ export const incomeSources: IncomeSource[] = [
   {
     id: "self-employment",
     title: "Self-employment",
-    tag: "Freelance or contract work",
     description: "Earnings as sole trader, e.g. freelancer, contractor or driver",
-    icon: "briefcase",
+    icon: "laptop",
   },
   {
     id: "property",
-    title: "Property rental income",
+    title: "Rental income",
     description: "Income from renting or leasing property",
     icon: "home",
   },
   {
-    id: "capital-gains",
-    title: "Capital gains/losses",
-    description: "Income or loss from selling assets such as shares or property",
+    id: "dividends",
+    title: "Dividends and interest",
+    description: "Income from shares, savings or investments",
     icon: "chart",
   },
   {
-    id: "pensions",
-    title: "Pensions and benefits",
-    description: "Received a private or state pension, or other income benefits",
-    icon: "umbrella",
+    id: "capital-gains",
+    title: "Sold assets and shares",
+    description: "Income or loss from selling assets such as shares or property",
+    icon: "coins",
+  },
+  {
+    id: "foreign",
+    title: "Foreign income",
+    description: "Income from outside the UK",
+    icon: "globe",
   },
   {
     id: "other",
-    title: "Other income",
+    title: "Other sources",
     description: "Any other income not covered above",
     icon: "plus-circle",
   },
@@ -116,16 +102,24 @@ export const categories: Category[] = [
     questions: [
       {
         id: "activity",
-        type: "text",
-        sidebarLabel: "Description of activity",
-        prompt: "Your self-employment: what kind of work do you do?",
-        placeholder: "e.g. graphic designer, driver, consultant",
+        type: "choice",
+        layout: "cards",
+        sidebarLabel: "Type of work",
+        prompt: "What best describes your self-employment?",
+        helper: "Choose one that fits best",
+        options: [
+          "Freelancer / Contract worker",
+          "Construction worker (CIS)",
+          "Courier or driver (Uber, Deliveroo, etc.)",
+          "Something else",
+        ],
+        icons: ["laptop", "wrench", "package", "umbrella"],
       },
       {
         id: "income-amount",
         type: "currency",
         sidebarLabel: "Self-employed income",
-        prompt: "How much self-employed income did you earn last tax year?",
+        prompt: "How much self-employment income did you earn last year?",
         helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
         notSure: true,
       },
@@ -133,7 +127,7 @@ export const categories: Category[] = [
         id: "expenses-under-1000",
         type: "yes-no",
         sidebarLabel: "Expenses under £1,000",
-        prompt: "Were your total work-related expenses under £1,000?",
+        prompt: "Were your work-related expenses under £1,000?",
         contextNote:
           "Next, we'll ask about some general expenses related to your self-employment. Later you'll be able to enter exact details.",
       },
@@ -222,14 +216,8 @@ export const categories: Category[] = [
     doneHeading: "That's everything",
     doneSub: "We've got what we need to find your best plan.",
     questions: [
-      {
-        id: "utr",
-        type: "choice",
-        sidebarLabel: "UTR",
-        prompt: "Do you already have a UTR (Unique Taxpayer Reference)?",
-        helper: "It's the 10-digit number HMRC gives you when you register for Self Assessment.",
-        options: ["Yes", "No", "Not sure"],
-      },
+      // UTR/registration status is captured once on the welcome screen
+      // (saRegistered in the store) — no question here asks about it.
       {
         id: "allowances",
         type: "pills-multi",

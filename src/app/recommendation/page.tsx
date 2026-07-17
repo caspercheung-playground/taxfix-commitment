@@ -9,7 +9,7 @@ import { LiveChatPill } from "@/components/LiveChatPill";
 import { FlowRail, type RailItem } from "@/components/wizard/FlowRail";
 import { categories, incomeSources, mtdMessages, recommendedPlan, TAX_YEAR_LABEL } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
-import { ALLOWANCES_KEY, getUtr, mtdStatus, UTR_KEY } from "@/lib/wizard";
+import { ALLOWANCES_KEY, mtdStatus } from "@/lib/wizard";
 
 function listOf(items: string[]): string {
   if (items.length <= 1) return items[0] ?? "";
@@ -178,6 +178,7 @@ export default function RecommendationPage() {
   const router = useRouter();
   const selectedSources = useAppStore((s) => s.incomeSources);
   const answers = useAppStore((s) => s.answers);
+  const saRegistered = useAppStore((s) => s.saRegistered);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
   const [matched, setMatched] = useState(false);
@@ -187,7 +188,9 @@ export default function RecommendationPage() {
   );
   const mtd = mtdStatus(answers, selectedSources);
   const hasCapitalGains = selectedSources.includes("capital-gains");
-  const needsUtrRegistration = getUtr(answers) === "No";
+  // Registration status from the welcome screen is the single source of truth
+  // for UTR: "No" means not-yet-registered/no UTR throughout.
+  const needsUtrRegistration = saRegistered === "No";
 
   // Bullets read naturally off the picker's names ("self-employment and
   // property rental income"), not the rail's title-case labels.
@@ -248,16 +251,7 @@ export default function RecommendationPage() {
           id: "allowances",
           label: "General & Allowances",
           state: answers[ALLOWANCES_KEY] !== undefined ? ("done" as const) : ("active" as const),
-          onClick: () => editCategory(generalIndex, 1),
-          // UTR belongs to General & Allowances, not the top level
-          children: [
-            {
-              id: "utr",
-              label: "UTR",
-              state: answers[UTR_KEY] ? ("done" as const) : ("active" as const),
-              onClick: () => editCategory(generalIndex, 0),
-            },
-          ],
+          onClick: () => editCategory(generalIndex, 0),
         },
       ],
     },

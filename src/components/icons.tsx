@@ -25,7 +25,11 @@ export type IconName =
   | "upload"
   | "send"
   | "lock"
-  | "pencil";
+  | "pencil"
+  | "laptop"
+  | "wrench"
+  | "package"
+  | "coins";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -203,6 +207,37 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
       return base(
         <>
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </>,
+        props
+      );
+    case "laptop":
+      return base(
+        <>
+          <rect x="3" y="5" width="18" height="12" rx="2" />
+          <path d="M2 20h20" />
+        </>,
+        props
+      );
+    case "wrench":
+      return base(
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />,
+        props
+      );
+    case "package":
+      return base(
+        <>
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path d="m3.3 7 8.7 5 8.7-5" />
+          <path d="M12 22V12" />
+        </>,
+        props
+      );
+    case "coins":
+      return base(
+        <>
+          <ellipse cx="12" cy="5" rx="9" ry="3" />
+          <path d="M3 5v14a9 3 0 0 0 18 0V5" />
+          <path d="M3 12a9 3 0 0 0 18 0" />
         </>,
         props
       );

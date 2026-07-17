@@ -1,4 +1,4 @@
-import type { Category, ChecklistItemDef, Question, UtrAnswer } from "./types";
+import type { Category, ChecklistItemDef, Question } from "./types";
 import type { ChecklistItemState } from "./store";
 
 export function answerKey(categoryId: string, questionId: string) {
@@ -68,13 +68,7 @@ export function formatDisplayValue(
   return raw;
 }
 
-export const UTR_KEY = answerKey("general", "utr");
 export const ALLOWANCES_KEY = answerKey("general", "allowances");
-
-export function getUtr(answers: Record<string, string>): UtrAnswer | null {
-  const raw = answers[UTR_KEY];
-  return raw === "Yes" || raw === "No" || raw === "Not sure" ? raw : null;
-}
 
 export type MtdStatus = "unknown" | "under-30k" | "30k-to-50k" | "50k-plus";
 

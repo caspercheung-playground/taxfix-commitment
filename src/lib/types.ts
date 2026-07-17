@@ -38,6 +38,10 @@ export interface YesNoQuestion extends BaseQuestion {
 export interface ChoiceQuestion extends BaseQuestion {
   type: "choice";
   options: string[];
+  /** "cards" renders an icon-card grid instead of pills */
+  layout?: "pills" | "cards";
+  /** Parallel to options; only read when layout === "cards" */
+  icons?: IconName[];
 }
 
 export interface PillsMultiQuestion extends BaseQuestion {
@@ -78,7 +82,8 @@ export interface Category {
   doneSub: string;
 }
 
-export type UtrAnswer = "Yes" | "No" | "Not sure";
+/** Yes/No answers captured on the welcome screen */
+export type WelcomeAnswer = "Yes" | "No";
 
 export interface ReasonCard {
   id: string;
