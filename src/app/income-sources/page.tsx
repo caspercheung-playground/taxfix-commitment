@@ -26,13 +26,15 @@ export default function IncomeSourcesPage() {
           <LiveChatPill />
         </div>
 
+        <div className="mb-6 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+          <Icon name="arrow-left" size={16} />
+          Tax Year / {TAX_YEAR_LABEL}
+        </div>
+
         <div className="flex flex-col gap-6 sm:flex-row">
           {/* Left panel: same shell as the question steps, so the flow starts
               the way it continues */}
           <aside className="w-full shrink-0 self-start rounded-3xl bg-[var(--color-cream)] p-6 sm:w-72">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-              Tax Year {TAX_YEAR_LABEL}
-            </p>
             <div className="flex items-center gap-3 border-b border-[var(--color-cream-border)] pb-4">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[var(--color-brand-dark)]">
                 <Icon name="briefcase" size={18} />
