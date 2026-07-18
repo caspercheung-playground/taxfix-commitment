@@ -97,8 +97,9 @@ function CheckBadge() {
 
 /**
  * The one fixed action row for every question. It does not animate — only the
- * card content above it does — so Back, Continue and Not sure hold their place
- * across question transitions.
+ * card content above it does — so Continue and Not sure hold their place
+ * across question transitions. Back/Cancel lives at the top of the page now
+ * (see Breadcrumb), not in this row.
  */
 function ActionRow({ controller, isEditing }: { controller: Controller | null; isEditing?: boolean }) {
   return (
@@ -121,8 +122,8 @@ function ActionRow({ controller, isEditing }: { controller: Controller | null; i
           onClick={controller.onNotSure}
           className={`rounded-lg px-5 py-3 font-semibold transition ${
             controller.notSureActive
-              ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]"
-              : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
+              ? "bg-[rgba(169,212,129,0.4)] text-[rgb(21,70,24)]"
+              : "text-[var(--color-brand-dark)] hover:bg-[rgba(169,212,129,0.4)] hover:text-[rgb(21,70,24)]"
           }`}
         >
           {controller.notSureLabel ?? "Not sure"}
@@ -413,9 +414,9 @@ function ChoiceQuestionCard({
                 key={opt}
                 type="button"
                 onClick={() => setSelected(opt)}
-                className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-center font-semibold transition ${
+                className={`flex flex-col items-center gap-3 rounded-2xl border p-5 text-center font-semibold transition ${
                   active
-                    ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-soft-2)]"
+                    ? "border-[var(--color-brand-dark)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
                     : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
                 }`}
               >
@@ -427,7 +428,7 @@ function ChoiceQuestionCard({
                         : "bg-white text-[var(--color-ink)]"
                     }`}
                   >
-                    <Icon name={icons[i]} size={20} />
+                    <Icon name={active ? "check" : icons[i]} size={20} />
                   </span>
                 )}
                 <span className="text-sm leading-snug">{opt}</span>
@@ -643,28 +644,31 @@ function ChecklistQuestionCard({
 
   return (
     <QuestionShell question={question}>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {question.items.map((item) => {
           const state = checklistState[item.id];
           const added = state?.added;
           return (
-            <div
-              key={item.id}
-              className={`rounded-xl px-4 py-3.5 ${
-                added ? "bg-[var(--color-brand-soft-2)]" : "bg-[var(--color-cream)]"
-              }`}
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  {added && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-brand-dark)] text-white">
-                      <Icon name="check" size={12} />
-                    </span>
-                  )}
-                  <span className="font-medium">
+            <div key={item.id}>
+              <div
+                className={`flex items-center justify-between gap-4 rounded-2xl border p-4 transition ${
+                  added
+                    ? "border-[var(--color-brand-dark)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
+                    : "border-transparent bg-[var(--color-cream)]"
+                }`}
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                      added ? "bg-[var(--color-brand-dark)] text-white" : "bg-white text-[var(--color-ink)]"
+                    }`}
+                  >
+                    <Icon name={added ? "check" : item.icon} size={18} />
+                  </span>
+                  <span className="min-w-0 font-bold">
                     {item.label}
                     {added && state?.value && (
-                      <span className="text-[var(--color-muted)]"> — {state.value}</span>
+                      <span className="font-medium text-[var(--color-muted)]"> — {state.value}</span>
                     )}
                   </span>
                 </div>
@@ -687,8 +691,9 @@ function ChecklistQuestionCard({
                 )}
               </div>
 
-              {/* Sub-question renders inline beneath the row — stays visible
-                  while added, even when another item is selected. */}
+              {/* Sub-question renders as its own separate box beneath the row,
+                  in place of a modal — stays visible while added, even if
+                  another item is opened at the same time. */}
               {added && (
                 <div className="mt-3 bg-white p-4 text-left">
                   <p className="font-medium">{item.subPrompt}</p>
@@ -746,7 +751,6 @@ function ChecklistQuestionCard({
           );
         })}
       </div>
-
     </QuestionShell>
   );
 }

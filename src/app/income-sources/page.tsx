@@ -48,7 +48,7 @@ export default function IncomeSourcesPage() {
                   }
                   toggleIncomeSource(source.id);
                 }}
-                className={`rounded-2xl border-2 p-5 text-left transition ${
+                className={`rounded-2xl border p-5 text-left transition ${
                   active
                     ? "border-[var(--color-brand-dark)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
                     : isDisabled

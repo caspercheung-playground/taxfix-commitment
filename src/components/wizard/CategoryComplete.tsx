@@ -38,29 +38,34 @@ export function CategoryComplete({
       <p className="mt-2 text-[var(--color-muted)]">{sub}</p>
 
       {questions.length > 0 && (
-        // Grey sits on each row, not the panel — the fill marks the rows as
-        // clickable (tap one to go back and edit that answer).
-        <div className="mx-auto mt-8 max-w-md space-y-2 text-left">
+        // One consolidated grey box — each row stays individually
+        // hoverable/clickable to jump back and edit that answer.
+        <dl className="mx-auto mt-8 max-w-md rounded-2xl bg-[var(--color-cream)] p-2 text-left">
           {questions.map((q, i) => (
             <button
               key={q.id}
               type="button"
               onClick={() => onEditQuestion(i)}
-              className="flex w-full items-center justify-between gap-4 rounded-xl bg-[var(--color-cream)] px-4 py-3 text-left transition hover:bg-[var(--color-cream-border)]"
+              className="flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-left transition hover:bg-[var(--color-cream-border)]"
             >
-              <span className="text-sm text-[var(--color-muted)]">{q.sidebarLabel}</span>
-              <span className="flex min-w-0 items-center gap-2">
+              <dt className="text-sm text-[var(--color-muted)]">{q.sidebarLabel}</dt>
+              <dd className="flex min-w-0 items-center gap-2">
                 <span className="truncate text-sm font-semibold">
                   {formatDisplayValue(category, q, answers, checklist) || "—"}
                 </span>
                 <Icon name="chevron-right" size={16} className="shrink-0 text-[var(--color-muted)]" />
-              </span>
+              </dd>
             </button>
           ))}
-        </div>
+        </dl>
       )}
 
-      <div className="mx-auto mt-4 flex max-w-md items-center justify-between gap-4 rounded-2xl border border-[var(--color-line)] bg-white p-4 text-left shadow-sm">
+      {/* Spacer so the sticky CTA below never covers the last row of content */}
+      <div className="h-24" aria-hidden />
+
+      {/* Sticky session CTA — stays in normal flow (centered in the right panel
+          via mx-auto below), only pinned vertically to the viewport bottom. */}
+      <div className="sticky bottom-6 z-20 mx-auto flex w-full max-w-md items-center justify-between gap-4 rounded-2xl border border-[var(--color-line)] bg-white p-4 text-left shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]">
             <Icon name={nextCategory ? nextCategory.icon : "sparkles"} size={20} />

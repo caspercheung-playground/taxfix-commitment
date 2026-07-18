@@ -38,7 +38,7 @@ export function SelectableRow({
   ) : (
     <span
       aria-hidden
-      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
         selected
           ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-dark)]"
           : "border-[var(--color-line)] bg-white"
