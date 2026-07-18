@@ -78,7 +78,6 @@ export function CategoryComplete({
           className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--color-brand)] px-5 py-2.5 font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
         >
           {nextCategory ? "Next" : "Finish"}
-          {nextCategory && <Icon name="arrow-right" size={16} />}
         </button>
       </div>
     </div>

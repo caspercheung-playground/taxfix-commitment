@@ -4,8 +4,8 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
+import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
-import { Breadcrumb } from "@/components/wizard/Breadcrumb";
 import { StepNav } from "@/components/wizard/StepNav";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
@@ -174,7 +174,14 @@ export default function QuestionWizardPage() {
       <Header progress={progress} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <Breadcrumb />
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-2 font-bold text-[var(--color-brand-dark)] hover:text-[var(--color-ink)]"
+          >
+            <Icon name="arrow-left" size={18} />
+            {isEditing ? "Cancel" : "Back"}
+          </button>
           <LiveChatPill />
         </div>
 
@@ -221,7 +228,6 @@ export default function QuestionWizardPage() {
                 checklistState={categoryAnswersForChecklist}
                 onConfirm={handleConfirm}
                 onChecklistItemChange={handleChecklistItemChange}
-                onBack={goBack}
                 isEditing={isEditing}
               />
             ) : null}

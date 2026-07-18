@@ -123,45 +123,34 @@ function CheckBadge() {
  * card content above it does — so Back, Continue and Not sure hold their place
  * across question transitions.
  */
-function ActionRow({ controller, onBack, isEditing }: { controller: Controller | null; onBack: () => void; isEditing?: boolean }) {
+function ActionRow({ controller, isEditing }: { controller: Controller | null; isEditing?: boolean }) {
   return (
-    <div className="mt-6 flex items-center justify-between gap-4 px-1">
+    <div className="mt-6 flex items-center gap-3 px-1">
       <button
         type="button"
-        onClick={onBack}
-        className="inline-flex items-center gap-2 font-bold text-[var(--color-brand-dark)] hover:text-[var(--color-ink)]"
+        disabled={!controller?.canContinue}
+        onClick={() => controller?.onContinue()}
+        className={`rounded-lg px-6 py-3 font-bold transition ${
+          controller?.canContinue
+            ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
+            : "cursor-not-allowed bg-[var(--color-line)] text-[var(--color-muted)]"
+        }`}
       >
-        <Icon name="arrow-left" size={18} />
-        {isEditing ? "Cancel" : "Back"}
+        {controller?.label ?? (isEditing ? "Update" : "Continue")}
       </button>
-      <div className="flex items-center gap-3">
-        {controller?.onNotSure && (
-          <button
-            type="button"
-            onClick={controller.onNotSure}
-            className={`rounded-lg border px-5 py-3 font-semibold transition ${
-              controller.notSureActive
-                ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)]"
-                : "border-[var(--color-brand-dark)] bg-white text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft-2)]"
-            }`}
-          >
-            Not sure
-          </button>
-        )}
+      {controller?.onNotSure && (
         <button
           type="button"
-          disabled={!controller?.canContinue}
-          onClick={() => controller?.onContinue()}
-          className={`inline-flex items-center gap-2 rounded-lg px-6 py-3 font-bold transition ${
-            controller?.canContinue
-              ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
-              : "cursor-not-allowed bg-[var(--color-line)] text-[var(--color-muted)]"
+          onClick={controller.onNotSure}
+          className={`rounded-lg px-5 py-3 font-semibold transition ${
+            controller.notSureActive
+              ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]"
+              : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
           }`}
         >
-          {controller?.label ?? (isEditing ? "Update" : "Continue")}
-          {controller?.canContinue && <Icon name="arrow-right" size={18} />}
+          Not sure
         </button>
-      </div>
+      )}
     </div>
   );
 }
@@ -173,7 +162,6 @@ export function QuestionCard({
   checklistState,
   onConfirm,
   onChecklistItemChange,
-  onBack,
   isEditing,
 }: {
   category: Category;
@@ -182,7 +170,6 @@ export function QuestionCard({
   checklistState: Record<string, ChecklistItemState>;
   onConfirm: (value: string) => void;
   onChecklistItemChange: (itemId: string, added: boolean, value: string) => void;
-  onBack: () => void;
   isEditing?: boolean;
 }) {
   // The shell persists across questions so AnimatePresence can play the
@@ -241,7 +228,7 @@ export function QuestionCard({
           {renderBody()}
         </motion.div>
       </AnimatePresence>
-      <ActionRow controller={controller} onBack={onBack} isEditing={isEditing} />
+      <ActionRow controller={controller} isEditing={isEditing} />
     </div>
   );
 }
