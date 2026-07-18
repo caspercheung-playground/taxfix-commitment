@@ -17,33 +17,47 @@ interface AppState {
    * not-yet-registered/no UTR everywhere downstream.
    */
   saRegistered: WelcomeAnswer | null;
+  /** "What brings you here" onboarding selections — feed the initial income source pre-selection */
+  entryReasons: string[];
   incomeSources: string[];
   answers: Record<string, string>;
   checklist: Record<string, ChecklistItemState>;
   categoryIndex: number;
   questionIndex: number;
+  isEditing: boolean;
 
   setFirstTimeFiler: (value: WelcomeAnswer) => void;
   setSaRegistered: (value: WelcomeAnswer) => void;
+  toggleEntryReason: (id: string) => void;
   toggleIncomeSource: (id: string) => void;
   setAnswer: (key: string, value: string) => void;
   setChecklistItem: (key: string, added: boolean, value: string) => void;
   setCategoryIndex: (index: number) => void;
   setQuestionIndex: (index: number) => void;
+  setIsEditing: (editing: boolean) => void;
   resetWizard: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   firstTimeFiler: null,
   saRegistered: null,
+  entryReasons: [],
   incomeSources: [],
   answers: {},
   checklist: {},
   categoryIndex: 0,
   questionIndex: 0,
+  isEditing: false,
 
   setFirstTimeFiler: (value) => set({ firstTimeFiler: value }),
   setSaRegistered: (value) => set({ saRegistered: value }),
+
+  toggleEntryReason: (id) =>
+    set((state) => ({
+      entryReasons: state.entryReasons.includes(id)
+        ? state.entryReasons.filter((s) => s !== id)
+        : [...state.entryReasons, id],
+    })),
 
   toggleIncomeSource: (id) =>
     set((state) => ({
@@ -62,15 +76,18 @@ export const useAppStore = create<AppState>((set) => ({
 
   setCategoryIndex: (index) => set({ categoryIndex: index }),
   setQuestionIndex: (index) => set({ questionIndex: index }),
+  setIsEditing: (editing) => set({ isEditing: editing }),
 
   resetWizard: () =>
     set({
       firstTimeFiler: null,
       saRegistered: null,
+      entryReasons: [],
       incomeSources: [],
       answers: {},
       checklist: {},
       categoryIndex: 0,
       questionIndex: 0,
+      isEditing: false,
     }),
 }));

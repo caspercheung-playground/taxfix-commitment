@@ -41,12 +41,22 @@ function ContextNote({ note }: { note?: string }) {
   );
 }
 
-/** Amber, urgency-toned banner — deadlines and other time-pressure notices. */
+/** Lavender notification pill — deadlines and other time-pressure notices, dismissible. */
 function UrgencyBanner({ text }: { text: string }) {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
   return (
-    <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 p-4 text-sm font-semibold text-[#92400e]">
-      <Icon name="clock" size={18} className="shrink-0" />
-      {text}
+    <div className="mt-4 flex items-center gap-3 rounded-2xl bg-[#e9ecfb] px-4 py-3.5 text-sm font-medium text-[#33355a]">
+      <Icon name="bell" size={18} className="shrink-0" />
+      <span className="flex-1">{text}</span>
+      <button
+        type="button"
+        onClick={() => setDismissed(true)}
+        aria-label="Dismiss"
+        className="shrink-0 text-[#33355a]/70 hover:text-[#33355a]"
+      >
+        <Icon name="x" size={16} />
+      </button>
     </div>
   );
 }
@@ -73,7 +83,7 @@ function QuestionShell({
   return (
     <>
       <ContextNote note={question.contextNote} />
-      <div className="rounded-3xl bg-[var(--color-brand-soft)] p-6 sm:p-8">
+      <div className="px-1">
         <h3 className="text-xl font-extrabold leading-snug sm:text-2xl">{question.prompt}</h3>
         {question.helper && <p className="mt-2 text-[var(--color-muted)]">{question.helper}</p>}
         {question.infoButton && (
@@ -113,7 +123,7 @@ function CheckBadge() {
  * card content above it does — so Back, Continue and Not sure hold their place
  * across question transitions.
  */
-function ActionRow({ controller, onBack }: { controller: Controller | null; onBack: () => void }) {
+function ActionRow({ controller, onBack, isEditing }: { controller: Controller | null; onBack: () => void; isEditing?: boolean }) {
   return (
     <div className="mt-6 flex items-center justify-between gap-4 px-1">
       <button
@@ -122,14 +132,14 @@ function ActionRow({ controller, onBack }: { controller: Controller | null; onBa
         className="inline-flex items-center gap-2 font-bold text-[var(--color-brand-dark)] hover:text-[var(--color-ink)]"
       >
         <Icon name="arrow-left" size={18} />
-        Back
+        {isEditing ? "Cancel" : "Back"}
       </button>
       <div className="flex items-center gap-3">
         {controller?.onNotSure && (
           <button
             type="button"
             onClick={controller.onNotSure}
-            className={`rounded-full border px-5 py-3 font-semibold transition ${
+            className={`rounded-lg border px-5 py-3 font-semibold transition ${
               controller.notSureActive
                 ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)]"
                 : "border-[var(--color-brand-dark)] bg-white text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft-2)]"
@@ -142,10 +152,14 @@ function ActionRow({ controller, onBack }: { controller: Controller | null; onBa
           type="button"
           disabled={!controller?.canContinue}
           onClick={() => controller?.onContinue()}
-          className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-6 py-3 font-bold text-[var(--color-brand-dark)] transition disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[var(--color-brand-dark)] hover:text-white"
+          className={`inline-flex items-center gap-2 rounded-lg px-6 py-3 font-bold transition ${
+            controller?.canContinue
+              ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
+              : "cursor-not-allowed bg-[var(--color-line)] text-[var(--color-muted)]"
+          }`}
         >
-          {controller?.label ?? "Continue"}
-          <Icon name="arrow-right" size={18} />
+          {controller?.label ?? (isEditing ? "Update" : "Continue")}
+          {controller?.canContinue && <Icon name="arrow-right" size={18} />}
         </button>
       </div>
     </div>
@@ -160,6 +174,7 @@ export function QuestionCard({
   onConfirm,
   onChecklistItemChange,
   onBack,
+  isEditing,
 }: {
   category: Category;
   question: Question;
@@ -168,6 +183,7 @@ export function QuestionCard({
   onConfirm: (value: string) => void;
   onChecklistItemChange: (itemId: string, added: boolean, value: string) => void;
   onBack: () => void;
+  isEditing?: boolean;
 }) {
   // The shell persists across questions so AnimatePresence can play the
   // enter/exit; each question's controller flows up into the fixed ActionRow.
@@ -225,7 +241,7 @@ export function QuestionCard({
           {renderBody()}
         </motion.div>
       </AnimatePresence>
-      <ActionRow controller={controller} onBack={onBack} />
+      <ActionRow controller={controller} onBack={onBack} isEditing={isEditing} />
     </div>
   );
 }
@@ -308,7 +324,7 @@ function DateQuestionCard({
   onConfirm: (value: string) => void;
   register: Register;
 }) {
-  const initial = decodeDate(rawValue);
+  const initial = decodeDate(rawValue ?? question.defaultValue);
   const [day, setDay] = useState(initial.day);
   const [month, setMonth] = useState(initial.month);
   const [year, setYear] = useState(initial.year);
@@ -422,7 +438,6 @@ function ChoiceQuestionCard({
               mode="radio"
               selected={selected === opt}
               icon={icons?.[i]}
-              iconPosition="left"
               label={opt}
               onClick={() => setSelected(opt)}
             />
@@ -433,6 +448,8 @@ function ChoiceQuestionCard({
     );
   }
 
+  // No inline selector on these — the button's own fill/border is the state:
+  // grey at rest, white with a green border and soft shadow once selected.
   return (
     <QuestionShell question={question}>
       <div className="flex flex-wrap gap-3">
@@ -443,20 +460,12 @@ function ChoiceQuestionCard({
               key={opt}
               type="button"
               onClick={() => setSelected(opt)}
-              className={`flex items-center gap-2.5 rounded-full border px-5 py-3 font-bold transition ${
+              className={`rounded-lg border px-7 py-3 font-bold transition ${
                 active
-                  ? "border-[var(--color-brand)] bg-white shadow-md"
+                  ? "border-[var(--color-brand-dark)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
                   : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
               }`}
             >
-              {active ? (
-                <CheckBadge />
-              ) : (
-                <span
-                  aria-hidden
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-line)] bg-white"
-                />
-              )}
               {opt}
             </button>
           );
@@ -550,7 +559,6 @@ function PillsQuestionCard({
               mode="checkbox"
               selected={selected.includes(opt)}
               icon={question.icons?.[i]}
-              iconPosition="left"
               label={opt}
               onClick={() => toggle(opt)}
             />
@@ -712,7 +720,11 @@ function ChecklistQuestionCard({
                   onChecklistItemChange(activeItem.id, true, draft.trim());
                   setActiveItemId(null);
                 }}
-                className="rounded-full bg-[var(--color-brand)] px-5 py-2 font-bold text-[var(--color-brand-dark)] transition disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[var(--color-brand-dark)] hover:text-white"
+                className={`rounded-full px-5 py-2 font-bold transition ${
+                  draft.trim()
+                    ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
+                    : "cursor-not-allowed bg-[var(--color-line)] text-[var(--color-muted)]"
+                }`}
               >
                 Save
               </button>

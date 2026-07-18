@@ -104,13 +104,25 @@ export const incomeSources: IncomeSource[] = [
     description: "Income from outside the UK",
     icon: "globe",
   },
-  {
-    id: "other",
-    title: "Other sources",
-    description: "Any other income not covered above",
-    icon: "plus-circle",
-  },
 ];
+
+/**
+ * How each category is named in the "My Progress" rail and breadcrumb — kept
+ * separate from the in-flow `title` so the rail reads as a consistent set
+ * ("Self-employment", "Property income", "Allowances").
+ */
+export const CATEGORY_RAIL_LABELS: Record<string, string> = {
+  "self-employment": "Self-employment",
+  property: "Property income",
+  general: "Allowances",
+};
+
+export function railLabel(category: Category): string {
+  return CATEGORY_RAIL_LABELS[category.id] ?? category.title;
+}
+
+/** The label the final rail step + breadcrumb use for the recommendation page */
+export const MATCH_STEP_LABEL = "Match with Accountant";
 
 export const categories: Category[] = [
   {
@@ -138,13 +150,14 @@ export const categories: Category[] = [
           title: "Registering for Self Assessment",
           body: "If you're newly self-employed, you need to register with HMRC to get a Unique Taxpayer Reference (UTR) before you can file a return. If you're not sure, choose \"No\" and we'll register you as part of your plan.",
         },
-        banner: "Registration deadline is 5th October 2026",
+        banner: "Don't miss the registration deadline on 5 October 2026!",
       },
       {
         id: "start-date",
         type: "date",
         sidebarLabel: "Started self-employment",
         prompt: "When did you start self-employment?",
+        defaultValue: "2025-04-06",
       },
       {
         id: "work-type",
@@ -202,7 +215,7 @@ export const categories: Category[] = [
   },
   {
     id: "property",
-    title: "Property earnings",
+    title: "Property income",
     icon: "home",
     incomeSourceId: "property",
     doneHeading: "All sorted!",
@@ -247,7 +260,7 @@ export const categories: Category[] = [
   // completion screen is the one that hands off to the recommendation.
   {
     id: "general",
-    title: "General and Allowances",
+    title: "Allowances",
     icon: "plus-circle",
     doneHeading: "That's everything",
     doneSub: "We've got what we need to find your best plan.",
@@ -259,7 +272,7 @@ export const categories: Category[] = [
         id: "allowances",
         type: "pills-multi",
         layout: "rows",
-        sidebarLabel: "General & allowances",
+        sidebarLabel: "Allowances",
         prompt: "And finally, to avoid overpaying your taxes, add all that applied to you",
         helper: `Between ${TAX_YEAR_RANGE}`,
         options: [

@@ -26,6 +26,18 @@ export function getVisibleQuestions(category: Category, answers: Record<string, 
   return category.questions.filter((q) => !q.skipIf || !q.skipIf(scoped));
 }
 
+/**
+ * A step is "answered" as a whole — the nav never tracks per-question state.
+ * Visibility matters: a skipped question must not hold a category open.
+ */
+export function isCategoryComplete(category: Category, answers: Record<string, string>): boolean {
+  const visible = getVisibleQuestions(category, answers);
+  return (
+    visible.length > 0 &&
+    visible.every((q) => answers[answerKey(category.id, q.id)] !== undefined)
+  );
+}
+
 function checklistItemsFor(
   category: Category,
   question: Extract<Question, { type: "checklist-add" }>,
@@ -47,6 +59,29 @@ export function decodeYesNoAmount(raw: string | undefined): { yn: "Yes" | "No" |
   if (raw === "No") return { yn: "No", amount: "" };
   const [yn, amount] = raw.split(":");
   return { yn: yn === "Yes" ? "Yes" : null, amount: amount ?? "" };
+}
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** "date" is stored as "YYYY-MM-DD" */
+export function encodeDate(day: string, month: string, year: string): string {
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+export function decodeDate(raw: string | undefined): { day: string; month: string; year: string } {
+  if (!raw) return { day: "", month: "", year: "" };
+  const [year, month, day] = raw.split("-");
+  return { day: day ?? "", month: month ?? "", year: year ?? "" };
+}
+
+function formatDate(raw: string): string {
+  const { day, month, year } = decodeDate(raw);
+  const monthName = MONTH_NAMES[Number(month) - 1];
+  if (!day || !monthName || !year) return raw;
+  return `${Number(day)} ${monthName} ${year}`;
 }
 
 export function formatDisplayValue(
@@ -80,6 +115,10 @@ export function formatDisplayValue(
   if (question.type === "yes-no-amount") {
     const { yn, amount } = decodeYesNoAmount(raw);
     return yn === "Yes" ? `Yes — £${amount}` : "No";
+  }
+
+  if (question.type === "date") {
+    return formatDate(raw);
   }
 
   return raw;

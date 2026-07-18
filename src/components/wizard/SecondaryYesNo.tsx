@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * The "secondary pill" Yes/No control — light green fill, dark green text,
- * 8px radius, no border. Used on the welcome screen and the mortgage
- * question; every other yes/no in the wizard keeps the radio-in-pill style.
+ * Yes/No button pair, 8px radius, no inline selector — grey fill at rest,
+ * white with a green border and soft shadow when selected. Matches the
+ * primary yes/no buttons used across the wizard.
  */
 export function SecondaryYesNo({
   value,
@@ -21,10 +21,10 @@ export function SecondaryYesNo({
             key={opt}
             type="button"
             onClick={() => onSelect(opt)}
-            className={`rounded-lg px-8 py-3.5 text-lg font-bold transition ${
+            className={`rounded-lg border px-7 py-3 font-bold transition ${
               active
-                ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]"
-                : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
+                ? "border-[var(--color-brand-dark)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
+                : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
             }`}
           >
             {opt}

@@ -7,7 +7,8 @@ export type QuestionType =
   | "yes-no-amount"
   | "choice"
   | "pills-multi"
-  | "checklist-add";
+  | "checklist-add"
+  | "date";
 
 export interface BaseQuestion {
   id: string;
@@ -16,6 +17,15 @@ export interface BaseQuestion {
   helper?: string;
   /** Grey context card shown above the active question card */
   contextNote?: string;
+  /** "Tell me more" link below the prompt, opening a modal with this content */
+  infoButton?: { title: string; body: string };
+  /** Static amber urgency banner shown below the question (e.g. a registration deadline) */
+  banner?: string;
+  /**
+   * Green "good news" banner shown once the given option is selected —
+   * keyed by the raw option value (e.g. "Yes"). Single-choice types only.
+   */
+  answerBanner?: Record<string, string>;
   type: QuestionType;
   /** Return true to skip this question given the answers collected so far in this category */
   skipIf?: (answers: Record<string, string>) => boolean;
@@ -73,6 +83,13 @@ export interface ChecklistAddQuestion extends BaseQuestion {
   items: ChecklistItemDef[];
 }
 
+/** Day / month / year dropdown triplet; stored as "YYYY-MM-DD" */
+export interface DateQuestion extends BaseQuestion {
+  type: "date";
+  /** Pre-filled on first visit (not yet an actual answer), stored as "YYYY-MM-DD" */
+  defaultValue?: string;
+}
+
 export type Question =
   | TextQuestion
   | CurrencyQuestion
@@ -80,7 +97,8 @@ export type Question =
   | YesNoAmountQuestion
   | ChoiceQuestion
   | PillsMultiQuestion
-  | ChecklistAddQuestion;
+  | ChecklistAddQuestion
+  | DateQuestion;
 
 export interface Category {
   id: string;

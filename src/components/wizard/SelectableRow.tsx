@@ -3,17 +3,16 @@
 import { Icon, type IconName } from "@/components/icons";
 
 /**
- * The one selector building block used by every selection screen — income
- * sources, self-employment type of work, property income type, and general
- * allowances. Selector (radio/checkbox) is always on the left; an icon, if
- * given, defaults to the right but can be pinned left per-screen. Single- vs
- * multi-choice is a prop, not a different component.
+ * The one selector building block used by every selection screen. Selection
+ * controls are always circular — never square. Rows with an icon don't get a
+ * separate selector at all: the icon's own circle IS the indicator, turning
+ * green with a checkmark when selected. Rows without an icon fall back to a
+ * circular radio/checkbox on the left.
  */
 export function SelectableRow({
   mode,
   selected,
   icon,
-  iconPosition = "right",
   label,
   description,
   onClick,
@@ -21,17 +20,25 @@ export function SelectableRow({
   mode: "radio" | "checkbox";
   selected: boolean;
   icon?: IconName;
-  iconPosition?: "left" | "right";
   label: string;
   description?: string;
   onClick: () => void;
 }) {
-  const selector = (
+  const indicator = icon ? (
+    // Icon doubles as the selected indicator — green circle + check when picked
+    <span
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+        selected
+          ? "bg-[var(--color-brand-dark)] text-white"
+          : "bg-white text-[var(--color-ink)]"
+      }`}
+    >
+      <Icon name={selected ? "check" : icon} size={18} />
+    </span>
+  ) : (
     <span
       aria-hidden
-      className={`flex h-5 w-5 shrink-0 items-center justify-center border-2 ${
-        mode === "radio" ? "rounded-full" : "rounded-md"
-      } ${
+      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
         selected
           ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-dark)]"
           : "border-[var(--color-line)] bg-white"
@@ -46,10 +53,6 @@ export function SelectableRow({
     </span>
   );
 
-  const iconEl = icon && (
-    <Icon name={icon} size={20} className="shrink-0 text-[var(--color-ink)]" />
-  );
-
   return (
     <button
       type="button"
@@ -60,13 +63,11 @@ export function SelectableRow({
           : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
       }`}
     >
-      {selector}
-      {icon && iconPosition === "left" && iconEl}
+      {indicator}
       <div className="min-w-0 flex-1">
         <span className="font-bold">{label}</span>
         {description && <p className="mt-0.5 text-sm text-[var(--color-muted)]">{description}</p>}
       </div>
-      {icon && iconPosition === "right" && iconEl}
     </button>
   );
 }

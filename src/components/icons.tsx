@@ -31,7 +31,8 @@ export type IconName =
   | "package"
   | "coins"
   | "car"
-  | "phone";
+  | "phone"
+  | "bell";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -289,6 +290,14 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
     case "phone":
       return base(
         <path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1.1-.2c1.2.5 2.5.8 3.9.8a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1c0 1.4.3 2.7.8 3.9a1 1 0 0 1-.2 1.1L6.6 10.8Z" />,
+        props
+      );
+    case "bell":
+      return base(
+        <>
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </>,
         props
       );
   }

@@ -4,14 +4,20 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
-import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
+import { Breadcrumb } from "@/components/wizard/Breadcrumb";
 import { StepNav } from "@/components/wizard/StepNav";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
-import { categories, TAX_YEAR_LABEL } from "@/lib/data";
+import { categories } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
-import { answerKey, checklistItemKey, getVisibleQuestions, pseudoUuid } from "@/lib/wizard";
+import {
+  answerKey,
+  checklistItemKey,
+  getVisibleQuestions,
+  isCategoryComplete,
+  pseudoUuid,
+} from "@/lib/wizard";
 
 export default function QuestionWizardPage() {
   const router = useRouter();
@@ -22,10 +28,12 @@ export default function QuestionWizardPage() {
   const checklist = useAppStore((s) => s.checklist);
   const categoryIndex = useAppStore((s) => s.categoryIndex);
   const questionIndex = useAppStore((s) => s.questionIndex);
+  const isEditing = useAppStore((s) => s.isEditing);
   const setAnswer = useAppStore((s) => s.setAnswer);
   const setChecklistItem = useAppStore((s) => s.setChecklistItem);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
+  const setIsEditing = useAppStore((s) => s.setIsEditing);
   const setFirstTimeFiler = useAppStore((s) => s.setFirstTimeFiler);
   const setSaRegistered = useAppStore((s) => s.setSaRegistered);
 
@@ -51,16 +59,21 @@ export default function QuestionWizardPage() {
     window.history.replaceState(null, "", `${pathname}?sectionId=${sectionId}&taskId=${taskId}`);
   }, [category, currentQuestion, pathname]);
 
-  const totalQuestions = activeCategories.reduce((sum, c) => sum + c.questions.length, 0);
-  const completedQuestions =
-    activeCategories.slice(0, safeCategoryIndex).reduce((sum, c) => sum + c.questions.length, 0) +
-    Math.min(questionIndex, visibleQuestions.length);
-  const progress = totalQuestions > 0 ? (completedQuestions / totalQuestions) * 100 : 0;
+  // The bar tracks the CURRENT session only — it resets to 0% at the start of
+  // each category and fills as that category's questions are answered. Overall
+  // flow progress lives in the "My Progress" panel, not here.
+  const sessionTotal = visibleQuestions.length;
+  const sessionAnswered = Math.min(questionIndex, sessionTotal);
+  const progress = sessionTotal > 0 ? (sessionAnswered / sessionTotal) * 100 : 0;
 
   function goBack() {
     if (!category) return;
     if (isComplete) {
       setQuestionIndex(Math.max(visibleQuestions.length - 1, 0));
+      return;
+    }
+    if (isEditing) {
+      setIsEditing(false);
       return;
     }
     if (questionIndex > 0) {
@@ -78,7 +91,8 @@ export default function QuestionWizardPage() {
 
   function handleConfirm(value: string) {
     if (!category || !currentQuestion) return;
-    setAnswer(answerKey(category.id, currentQuestion.id), value);
+    const key = answerKey(category.id, currentQuestion.id);
+    setAnswer(key, value);
     // These two self-employment questions are the single source of truth for
     // filer/UTR-registration status, mirrored into the store fields that
     // recommendation.tsx (and the receipt view) read directly.
@@ -88,7 +102,25 @@ export default function QuestionWizardPage() {
     if (category.id === "self-employment" && currentQuestion.id === "registered-hmrc") {
       setSaRegistered(value as "Yes" | "No");
     }
-    setQuestionIndex(questionIndex + 1);
+    // Once every visible question has an answer, land on the overview rather
+    // than stepping through the remaining pre-filled cards — this is what
+    // brings an overview-initiated edit straight back to the overview. The
+    // answer set must include the value just confirmed (state hasn't flushed),
+    // and visibility is recomputed off it since skipIf can change the list.
+    const nextAnswers = { ...answers, [key]: value };
+    const nextVisible = getVisibleQuestions(category, nextAnswers);
+
+    // If we're editing from the overview, return to overview
+    if (isEditing) {
+      setIsEditing(false);
+      setQuestionIndex(nextVisible.length);
+    } else {
+      setQuestionIndex(
+        isCategoryComplete(category, nextAnswers)
+          ? nextVisible.length
+          : Math.min(questionIndex + 1, nextVisible.length)
+      );
+    }
   }
 
   function handleChecklistItemChange(itemId: string, added: boolean, value: string) {
@@ -142,34 +174,28 @@ export default function QuestionWizardPage() {
       <Header progress={progress} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              aria-label="Back"
-              onClick={goBack}
-              className="inline-flex items-center gap-2 font-bold text-[var(--color-brand-dark)] hover:text-[var(--color-ink)]"
-            >
-              <Icon name="arrow-left" size={18} />
-              Back
-            </button>
-            <span className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-              Tax Year {TAX_YEAR_LABEL}
-            </span>
-          </div>
+          <Breadcrumb />
           <LiveChatPill />
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">
           <StepNav
             activeCategories={activeCategories}
-            currentCategoryIndex={safeCategoryIndex}
+            active={{ kind: "category", index: safeCategoryIndex }}
             answers={answers}
             onIncomeSources={() => router.push("/income-sources")}
             onSelectCategory={(i) => {
+              // Re-entering a finished session lands on its answer overview,
+              // never back at question one — the user picks what to revisit.
+              const target = activeCategories[i];
               setCategoryIndex(i);
-              setQuestionIndex(0);
+              setQuestionIndex(
+                isCategoryComplete(target, answers)
+                  ? getVisibleQuestions(target, answers).length
+                  : 0
+              );
             }}
-            onPlanResult={() => router.push("/recommendation")}
+            onMatch={() => router.push("/recommendation")}
           />
 
           <div className="min-w-0 flex-1">
@@ -182,6 +208,10 @@ export default function QuestionWizardPage() {
                 sub={category.doneSub}
                 nextCategory={nextCategory}
                 onContinue={handleContinueFromComplete}
+                onEditQuestion={(i) => {
+                  setIsEditing(true);
+                  setQuestionIndex(i);
+                }}
               />
             ) : currentQuestion ? (
               <QuestionCard
@@ -192,6 +222,7 @@ export default function QuestionWizardPage() {
                 onConfirm={handleConfirm}
                 onChecklistItemChange={handleChecklistItemChange}
                 onBack={goBack}
+                isEditing={isEditing}
               />
             ) : null}
           </div>

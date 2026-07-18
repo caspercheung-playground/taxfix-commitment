@@ -8,17 +8,10 @@ export function Header({ progress }: { progress?: number }) {
         <div className="flex items-center gap-3">
           <Logo />
           <span className="inline-flex items-center rounded-full bg-[var(--color-brand-soft-2)] px-3 py-1 text-xs font-semibold text-[var(--color-brand-dark)]">
-            Case Study Prototype
+            Freelance & Rental only
           </span>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
-          <button
-            type="button"
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-[var(--color-muted)] hover:bg-[var(--color-cream)]"
-          >
-            Freelance + Rental
-            <Icon name="chevron-down" size={14} />
-          </button>
           <button
             type="button"
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-[var(--color-muted)] hover:bg-[var(--color-cream)]"
