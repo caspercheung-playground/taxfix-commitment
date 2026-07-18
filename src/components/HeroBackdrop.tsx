@@ -4,9 +4,12 @@
  * render the exact same backdrop — navigating between them doesn't shift the
  * imagery. Page content must sit in a `relative z-10` container above it.
  */
-export function HeroBackdrop() {
+export function HeroBackdrop({ dimmed = false }: { dimmed?: boolean }) {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 hidden lg:block">
+    <div
+      aria-hidden
+      className={`pointer-events-none fixed inset-0 z-0 hidden lg:block ${dimmed ? "opacity-20" : ""}`}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/hero/hero-arrow.png"

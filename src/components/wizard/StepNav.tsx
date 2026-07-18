@@ -45,6 +45,7 @@ export function StepNav({
   onIncomeSources,
   onSelectCategory,
   onMatch,
+  nextSteps,
 }: {
   activeCategories: Category[];
   active: ActiveStep;
@@ -54,6 +55,8 @@ export function StepNav({
   onIncomeSources: () => void;
   onSelectCategory: (index: number) => void;
   onMatch: () => void;
+  /** Recommendation page only: the "What happens next" list */
+  nextSteps?: { label: string; caption: string }[];
 }) {
   const allComplete = activeCategories.every((c) => isCategoryComplete(c, answers));
   const onMatchStep = active.kind === "match";
@@ -168,6 +171,40 @@ export function StepNav({
           );
         })}
       </ol>
+
+      {nextSteps && nextSteps.length > 0 && (
+        <>
+          {/* Dashed divider, full width within the panel */}
+          <div className="my-6 border-t border-dashed border-[var(--color-line)]" aria-hidden />
+
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-muted)]">
+            Next steps
+          </p>
+          {/* Same geometry as the progress list above: h-10 circles joined by
+              fixed-height grey connectors, so both sections share one rhythm. */}
+          <ol className="mt-6">
+            {nextSteps.map((step, i) => {
+              const last = i === nextSteps.length - 1;
+              return (
+                <li key={step.label} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-white text-[var(--color-muted)]">
+                      <Icon name="lock" size={16} />
+                    </span>
+                    {!last && <span aria-hidden className="h-7 w-px bg-[var(--color-line)]" />}
+                  </div>
+                  <div className="flex h-10 min-w-0 flex-col justify-center">
+                    <p className="truncate text-sm font-semibold leading-tight">{step.label}</p>
+                    <p className="truncate text-xs leading-tight text-[var(--color-muted)]">
+                      {step.caption}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </>
+      )}
     </aside>
   );
 }

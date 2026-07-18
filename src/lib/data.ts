@@ -141,6 +141,9 @@ export const categories: Category[] = [
         sidebarLabel: "First-time filer",
         prompt: "Is this your first time doing Self Assessment?",
       },
+      // The deadline reminder for this question is no longer a static banner —
+      // answering "No" and continuing triggers the chat-pill popup instead
+      // (see the question page's handleConfirm).
       {
         id: "registered-hmrc",
         type: "yes-no",
@@ -150,7 +153,6 @@ export const categories: Category[] = [
           title: "Registering for Self Assessment",
           body: "If you're newly self-employed, you need to register with HMRC to get a Unique Taxpayer Reference (UTR) before you can file a return. If you're not sure, choose \"No\" and we'll register you as part of your plan.",
         },
-        banner: "Don't miss the registration deadline on 5 October 2026!",
       },
       {
         id: "se-type",
@@ -208,6 +210,7 @@ export const categories: Category[] = [
             label: "Had work-related business expenses (£2,000)",
             subPrompt: "How much did you spend on business expenses?",
             subType: "currency",
+            receiptsFollowUp: true,
           },
           {
             id: "home",
