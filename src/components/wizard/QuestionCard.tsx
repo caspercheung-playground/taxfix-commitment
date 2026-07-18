@@ -5,9 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { Category, Question } from "@/lib/types";
 import type { ChecklistItemState } from "@/lib/store";
 import { Icon } from "@/components/icons";
-import { Modal } from "@/components/Modal";
 import { SelectableRow } from "@/components/wizard/SelectableRow";
 import { SecondaryYesNo } from "@/components/wizard/SecondaryYesNo";
+import { useChatPopup } from "@/lib/chatPopup";
 import { decodeDate, decodeYesNoAmount, encodeDate, encodeYesNoAmount } from "@/lib/wizard";
 
 /**
@@ -42,26 +42,6 @@ function ContextNote({ note }: { note?: string }) {
   );
 }
 
-/** Lavender notification pill — deadlines and other time-pressure notices, dismissible. */
-function UrgencyBanner({ text }: { text: string }) {
-  const [dismissed, setDismissed] = useState(false);
-  if (dismissed) return null;
-  return (
-    <div className="mt-4 flex items-center gap-3 rounded-2xl bg-[#e9ecfb] px-4 py-3.5 text-sm font-medium text-[#33355a]">
-      <Icon name="bell" size={18} className="shrink-0" />
-      <span className="flex-1">{text}</span>
-      <button
-        type="button"
-        onClick={() => setDismissed(true)}
-        aria-label="Dismiss"
-        className="shrink-0 text-[#33355a]/70 hover:text-[#33355a]"
-      >
-        <Icon name="x" size={16} />
-      </button>
-    </div>
-  );
-}
-
 /** Green, positive-toned banner — shown once a specific answer is chosen. */
 function PositiveBanner({ text }: { text: string }) {
   return (
@@ -79,7 +59,8 @@ function QuestionShell({
   question: Question;
   children: React.ReactNode;
 }) {
-  const [infoOpen, setInfoOpen] = useState(false);
+  // "Tell me more" content opens as a chat-pill popup, not a modal.
+  const openPopup = useChatPopup((s) => s.open);
 
   return (
     <>
@@ -90,22 +71,17 @@ function QuestionShell({
         {question.infoButton && (
           <button
             type="button"
-            onClick={() => setInfoOpen(true)}
+            onClick={() =>
+              openPopup({ title: question.infoButton!.title, message: question.infoButton!.body })
+            }
             className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-brand-dark)] underline underline-offset-2"
           >
             <Icon name="help-circle" size={16} />
             Tell me more
           </button>
         )}
-        {question.banner && <UrgencyBanner text={question.banner} />}
       </div>
       <div className="mt-6 px-1">{children}</div>
-
-      {question.infoButton && (
-        <Modal open={infoOpen} title={question.infoButton.title} onClose={() => setInfoOpen(false)}>
-          <p className="text-[var(--color-ink)]">{question.infoButton.body}</p>
-        </Modal>
-      )}
     </>
   );
 }
@@ -646,11 +622,12 @@ function ChecklistQuestionCard({
   onConfirm: (value: string) => void;
   register: Register;
 }) {
-  const [activeItemId, setActiveItemId] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
   void category;
 
-  const activeItem = question.items.find((i) => i.id === activeItemId);
+  // Per-item answer to "Do you have your invoices/expense documents/receipts?"
+  // — only asked on items flagged receiptsFollowUp, once an amount is entered.
+  const [receipts, setReceipts] = useState<Record<string, "Yes" | "No" | "">>({});
+  const openPopup = useChatPopup((s) => s.open);
   const addedCount = question.items.filter((i) => checklistState[i.id]?.added).length;
   // A multi-select is a valid "none of the above" answer on its own, so the
   // CTA is always enabled — its label just says which action it performs.
@@ -673,102 +650,103 @@ function ChecklistQuestionCard({
           return (
             <div
               key={item.id}
-              className={`flex items-center justify-between gap-4 rounded-xl px-4 py-3.5 ${
+              className={`rounded-xl px-4 py-3.5 ${
                 added ? "bg-[var(--color-brand-soft-2)]" : "bg-[var(--color-cream)]"
               }`}
             >
-              <div className="flex items-center gap-3">
-                {added && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-brand-dark)] text-white">
-                    <Icon name="check" size={12} />
-                  </span>
-                )}
-                <span className="font-medium">
-                  {item.label}
-                  {added && state?.value && (
-                    <span className="text-[var(--color-muted)]"> — {state.value}</span>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  {added && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-brand-dark)] text-white">
+                      <Icon name="check" size={12} />
+                    </span>
                   )}
-                </span>
+                  <span className="font-medium">
+                    {item.label}
+                    {added && state?.value && (
+                      <span className="text-[var(--color-muted)]"> — {state.value}</span>
+                    )}
+                  </span>
+                </div>
+                {added ? (
+                  <button
+                    type="button"
+                    onClick={() => onChecklistItemChange(item.id, false, "")}
+                    className="shrink-0 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100"
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onChecklistItemChange(item.id, true, "")}
+                    className="shrink-0 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
+                  >
+                    Add
+                  </button>
+                )}
               </div>
-              {added ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDraft(state?.value ?? "");
-                    setActiveItemId(item.id);
-                  }}
-                  className="shrink-0 rounded-full bg-[var(--color-brand-soft-2)] px-4 py-1.5 text-sm font-semibold text-[var(--color-brand-dark)] hover:bg-[var(--color-cream)]"
-                >
-                  Edit
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  aria-label={`Add ${item.label}`}
-                  onClick={() => {
-                    setDraft(state?.value ?? "");
-                    setActiveItemId(item.id);
-                  }}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-cream)]"
-                >
-                  <Icon name="plus-circle" size={18} />
-                </button>
+
+              {/* Sub-question renders inline beneath the row — stays visible
+                  while added, even when another item is selected. */}
+              {added && (
+                <div className="mt-3 bg-white p-4 text-left">
+                  <p className="font-medium">{item.subPrompt}</p>
+                  <div className="mt-3 flex w-fit overflow-hidden rounded-xl border border-[var(--color-line)]">
+                    {item.subType === "currency" && (
+                      <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">
+                        £
+                      </span>
+                    )}
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={state?.value ?? ""}
+                      onChange={(e) => onChecklistItemChange(item.id, true, e.target.value)}
+                      placeholder={item.subType === "number" ? "Hours per week" : "0"}
+                      className="w-40 px-4 py-3 outline-none"
+                    />
+                    {item.subType === "number" && (
+                      <span className="flex items-center bg-[var(--color-cream)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                        hrs/week
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Receipts follow-up — appears once an amount is entered;
+                      answering "No" triggers the trading allowance chat popup. */}
+                  {item.receiptsFollowUp && !!state?.value?.trim() && (
+                    <div className="mt-4">
+                      <p className="font-medium">
+                        Do you have your invoices/expense documents/receipts?
+                      </p>
+                      <div className="mt-3">
+                        <SecondaryYesNo
+                          value={receipts[item.id] ?? ""}
+                          onSelect={(v) => {
+                            setReceipts((prev) => ({ ...prev, [item.id]: v }));
+                            if (v === "No") {
+                              openPopup({
+                                message:
+                                  "We'll need records of your expenses in order to claim them; if you're unable to provide records you can instead select the trading allowance to claim a £1,000 flat rate — no receipts needed. The Trading Allowance is a tax-free amount worth £1,000 that you can claim if your expenses are under £1,000 or if you don't have records of your expenses.",
+                                link: {
+                                  label: "Find out more here",
+                                  href: "https://taxfix.com/en-uk/glossary/trading-allowance/",
+                                },
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           );
         })}
       </div>
 
-      <Modal open={!!activeItem} title={activeItem?.label ?? ""} onClose={() => setActiveItemId(null)}>
-        {activeItem && (
-          <>
-            <p className="font-medium">{activeItem.subPrompt}</p>
-            <div className="mt-4 flex overflow-hidden rounded-xl border border-[var(--color-line)]">
-              {activeItem.subType === "currency" && (
-                <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">£</span>
-              )}
-              <input
-                autoFocus
-                type="number"
-                inputMode="decimal"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder={activeItem.subType === "number" ? "Hours per week" : "0"}
-                className="flex-1 px-4 py-3 outline-none"
-              />
-              {activeItem.subType === "number" && (
-                <span className="flex items-center bg-[var(--color-cream)] px-4 py-3 text-sm text-[var(--color-muted)]">
-                  hrs/week
-                </span>
-              )}
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveItemId(null)}
-                className="rounded-full px-4 py-2 font-semibold text-[var(--color-muted)] hover:bg-[var(--color-cream)]"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={!draft.trim()}
-                onClick={() => {
-                  onChecklistItemChange(activeItem.id, true, draft.trim());
-                  setActiveItemId(null);
-                }}
-                className={`rounded-full px-5 py-2 font-bold transition ${
-                  draft.trim()
-                    ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
-                    : "cursor-not-allowed bg-[var(--color-line)] text-[var(--color-muted)]"
-                }`}
-              >
-                Save
-              </button>
-            </div>
-          </>
-        )}
-      </Modal>
     </QuestionShell>
   );
 }

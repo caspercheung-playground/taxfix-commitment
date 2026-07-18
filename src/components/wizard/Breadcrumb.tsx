@@ -8,17 +8,17 @@ import { useRouter } from "next/navigation";
  * per-section crumbs by design — the "My Progress" panel carries the
  * where-am-I signal instead.
  */
-export function Breadcrumb() {
+export function Breadcrumb({ onBack }: { onBack?: () => void }) {
   const router = useRouter();
 
   return (
     <nav aria-label="Breadcrumb" className="flex items-center text-sm font-semibold">
       <button
         type="button"
-        onClick={() => router.push("/")}
-        className="text-[var(--color-muted)] transition hover:text-[var(--color-ink)]"
+        onClick={() => (onBack ? onBack() : router.push("/"))}
+        className="flex h-11 items-center gap-2 rounded-full px-4 text-[var(--color-brand-dark)] transition hover:bg-[rgba(169,212,129,0.4)] hover:text-[rgb(21,70,24)]"
       >
-        Tax Year 2025-26
+        ← Back
       </button>
     </nav>
   );

@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
-import { Icon, type IconName } from "@/components/icons";
+import { HeroBackdrop } from "@/components/HeroBackdrop";
+import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
 import { Breadcrumb } from "@/components/wizard/Breadcrumb";
 import { StepNav } from "@/components/wizard/StepNav";
@@ -18,74 +19,44 @@ function listOf(items: string[]): string {
 }
 
 /**
- * The one consolidated plan card: a white receipt-style ticket. Top section
- * reads plan name/price → matching-time note → why we recommend this → CTA;
- * below the perforation sits the "How It Works" timeline of what happens
- * after matching.
+ * The one consolidated plan card: a white receipt-style ticket. Opens with the
+ * Recommended Plan banner, then the plan name/price/discount row, features,
+ * and the CTA. The reassurance headline, "based on your answers" reasons, and
+ * the "How It Works" steps all live outside this card (see the page body and
+ * StepNav's `nextSteps`).
  */
 function PlanTicket({
-  bullets,
   hasCapitalGains,
-  needsUtrRegistration,
   matched,
   onMatch,
 }: {
-  bullets: string[];
   hasCapitalGains: boolean;
-  needsUtrRegistration: boolean;
   matched: boolean;
   onMatch: () => void;
 }) {
   const plan = recommendedPlan;
-  const steps: { actor: string; label: string; icon: IconName }[] = [
-    ...(needsUtrRegistration
-      ? [{ actor: "Accountant", label: "Register UTR (~2 weeks)", icon: "clock" as IconName }]
-      : []),
-    { actor: "You", label: "Upload documents", icon: "upload" },
-    { actor: "Accountant", label: "Review and filing", icon: "user" },
-    { actor: "You", label: "Review and approve", icon: "check" },
-    { actor: "Accountant", label: "File with HMRC", icon: "send" },
-  ];
 
   return (
     <div className="rounded-2xl border border-[var(--color-line)] bg-white shadow-sm">
       <div className="p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-brand-dark)]">
+        <span className="inline-flex items-center rounded-full bg-[var(--color-brand-soft)] px-3 py-1.5 text-sm font-bold text-[var(--color-ink)]">
           Recommended Plan
-        </p>
-        <h1 className="mt-1 text-3xl font-extrabold tracking-tight">{plan.name}</h1>
-        <p className="mt-2 text-[var(--color-ink)]">{plan.tagline}</p>
+        </span>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="text-5xl font-extrabold tracking-tight">{plan.price}</span>
-          <span className="text-xl text-[var(--color-muted)]">{plan.period}</span>
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 className="text-3xl font-extrabold tracking-tight">{plan.name}</h2>
           <span className="rounded-full bg-[var(--color-brand-soft)] px-3 py-1.5 text-sm font-bold text-[var(--color-ink)]">
             {plan.discount}
           </span>
+          <span className="text-5xl font-extrabold tracking-tight">{plan.price}</span>
+          <span className="text-xl text-[var(--color-muted)]">{plan.period}</span>
         </div>
         <p className="mt-2 text-[var(--color-muted)]">{plan.renewal}</p>
-        <p className="mt-2 text-sm font-semibold text-[var(--color-ink)]">
-          {plan.price}, fixed — stays that way if your documents are organised when you upload
-          them.
-        </p>
         {hasCapitalGains && (
           <p className="mt-1 text-sm text-[var(--color-muted)]">
             Your plan may cost more if you have capital gains or unorganised records.
           </p>
         )}
-
-        <p className="mt-4 text-sm text-[var(--color-muted)]">
-          Matching you with an accountant — usually within 1 business day.
-        </p>
-
-        <div className="mt-4 rounded-2xl bg-[var(--color-cream)] p-4">
-          <p className="text-sm font-bold text-[var(--color-brand-dark)]">Why we recommend this</p>
-          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-[var(--color-ink)]">
-            {bullets.map((bullet) => (
-              <li key={bullet}>{bullet}</li>
-            ))}
-          </ul>
-        </div>
 
         <button
           type="button"
@@ -95,7 +66,15 @@ function PlanTicket({
         >
           {matched ? "We're matching you with an accountant…" : plan.cta}
         </button>
-        <p className="mt-3 text-center text-sm text-[var(--color-ink)]">{plan.socialProof}</p>
+        <a
+          href="https://taxfix.com/en-uk/call-me/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-brand-dark)] bg-white px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[rgba(169,212,129,0.4)] hover:text-[rgb(21,70,24)]"
+        >
+          <Icon name="phone" size={16} />
+          Book a call
+        </a>
 
         <p className="mt-6 font-bold">{plan.featuresHeading}</p>
         <ul className="mt-3 space-y-4">
@@ -113,45 +92,6 @@ function PlanTicket({
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* Perforated receipt divider */}
-      <div className="relative" aria-hidden>
-        <span className="absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-[var(--color-line)] bg-white" />
-        <span className="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-[var(--color-line)] bg-white" />
-        <div className="mx-6 border-t border-dashed border-[var(--color-line)]" />
-      </div>
-
-      <div className="p-6">
-        <p className="text-lg font-extrabold">How It Works</p>
-        <ol className="relative mt-2">
-          {/* Timeline line behind the step circles */}
-          <span
-            aria-hidden
-            className="absolute bottom-8 left-[19px] top-8 w-px bg-[var(--color-line)]"
-          />
-          {steps.map((step, i) => (
-            <li key={step.label} className="relative flex items-center gap-4 py-3">
-              <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                  i === 0
-                    ? "bg-[#f59e0b] text-white"
-                    : "border border-[var(--color-line)] bg-[var(--color-cream)] text-[var(--color-muted)]"
-                }`}
-              >
-                <Icon name={step.icon} size={17} />
-              </span>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-                  {step.actor}
-                </p>
-                <p className={`font-bold ${i === 0 ? "" : "text-[var(--color-muted)]"}`}>
-                  {step.label}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
       </div>
     </div>
   );
@@ -171,12 +111,8 @@ export default function RecommendationPage() {
   );
   const mtd = mtdStatus(answers, selectedSources);
   const hasCapitalGains = selectedSources.includes("capital-gains");
-  // Registration status from the welcome screen is the single source of truth
-  // for UTR: "No" means not-yet-registered/no UTR throughout.
   const needsUtrRegistration = saRegistered === "No";
 
-  // Bullets read naturally off the picker's names ("self-employment and
-  // property income"), not the rail's title-case labels.
   const incomeCategoryNames = incomeSources
     .filter((s) => selectedSources.includes(s.id) && categories.some((c) => c.incomeSourceId === s.id))
     .map((s) => s.title.toLowerCase());
@@ -196,8 +132,15 @@ export default function RecommendationPage() {
       : []),
   ];
 
+  const nextSteps = [
+    ...(needsUtrRegistration ? [{ label: "Register UTR", caption: "Accountant (2 weeks)" }] : []),
+    { label: "Upload documents", caption: "You" },
+    { label: "Review and filing", caption: "Accountant" },
+    { label: "Review and approve", caption: "You" },
+    { label: "File with HMRC", caption: "Accountant" },
+  ];
+
   function editCategory(index: number) {
-    // Completed sessions open on their answer overview, not question one
     const target = activeCategories[index];
     setCategoryIndex(index);
     setQuestionIndex(
@@ -230,25 +173,15 @@ export default function RecommendationPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header progress={100} />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
+      <HeroBackdrop dimmed />
+      <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-5 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <Breadcrumb />
-          <div className="flex items-center gap-3">
-            <a
-              href="https://taxfix.com/en-uk/call-me/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full bg-[var(--color-cream)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--color-cream-border)]"
-            >
-              <Icon name="phone" size={16} />
-              Book a call
-            </a>
-            <LiveChatPill />
-          </div>
+          {/* Standard back-in-history behavior, not a hardcoded return to Get Started */}
+          <Breadcrumb onBack={() => router.back()} />
+          <LiveChatPill />
         </div>
 
         <div className="flex flex-col gap-6 sm:flex-row">
-          {/* Same "My Progress" panel used throughout the flow — the match step is now active */}
           <StepNav
             activeCategories={activeCategories}
             active={{ kind: "match" }}
@@ -257,17 +190,35 @@ export default function RecommendationPage() {
             onIncomeSources={() => router.push("/income-sources")}
             onSelectCategory={(i) => editCategory(i)}
             onMatch={() => {}}
+            nextSteps={nextSteps}
           />
 
           {/* Main recommendation */}
           <div className="min-w-0 flex-1">
-            <PlanTicket
-              bullets={bullets}
-              hasCapitalGains={hasCapitalGains}
-              needsUtrRegistration={needsUtrRegistration}
-              matched={matched}
-              onMatch={() => setMatched(true)}
-            />
+            <h1 className="text-3xl font-extrabold tracking-tight">Hand over your stress.</h1>
+            <p className="mt-2 text-[var(--color-ink)]">
+              Secure your filing slot with a UK-accredited specialist today. All of our tax return
+              services are covered by our 100% Accuracy Guarantee.
+            </p>
+
+            <div className="mt-6 rounded-2xl bg-[var(--color-cream)] p-4">
+              <p className="text-sm font-bold text-[var(--color-brand-dark)]">
+                Based on your answers, we think this plan is best for you
+              </p>
+              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-[var(--color-ink)]">
+                {bullets.map((bullet) => (
+                  <li key={bullet}>{bullet}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-6">
+              <PlanTicket
+                hasCapitalGains={hasCapitalGains}
+                matched={matched}
+                onMatch={() => setMatched(true)}
+              />
+            </div>
 
             {(mtd === "under-30k" || mtd === "30k-to-50k") && (
               <p className="mt-6 flex items-start gap-2 px-1 text-sm text-[var(--color-muted)]">

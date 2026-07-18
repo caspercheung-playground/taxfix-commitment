@@ -80,6 +80,12 @@ export interface ChecklistItemDef {
   label: string;
   subPrompt: string;
   subType: "currency" | "number";
+  /**
+   * After an amount is entered, ask "Do you have your invoices/expense
+   * documents/receipts?" inline — answering "No" triggers the trading
+   * allowance chat popup.
+   */
+  receiptsFollowUp?: boolean;
 }
 
 export interface ChecklistAddQuestion extends BaseQuestion {

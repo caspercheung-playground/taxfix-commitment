@@ -10,6 +10,7 @@ import { StepNav } from "@/components/wizard/StepNav";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
 import { CategoryComplete } from "@/components/wizard/CategoryComplete";
 import { categories } from "@/lib/data";
+import { useChatPopup } from "@/lib/chatPopup";
 import { useAppStore } from "@/lib/store";
 import {
   answerKey,
@@ -36,6 +37,7 @@ export default function QuestionWizardPage() {
   const setIsEditing = useAppStore((s) => s.setIsEditing);
   const setFirstTimeFiler = useAppStore((s) => s.setFirstTimeFiler);
   const setSaRegistered = useAppStore((s) => s.setSaRegistered);
+  const openChatPopup = useChatPopup((s) => s.open);
 
   const activeCategories = useMemo(
     () => categories.filter((c) => !c.incomeSourceId || incomeSources.includes(c.incomeSourceId)),
@@ -102,6 +104,11 @@ export default function QuestionWizardPage() {
     }
     if (category.id === "self-employment" && currentQuestion.id === "registered-hmrc") {
       setSaRegistered(value as "Yes" | "No");
+      // Not registered yet → the deadline reminder arrives as a message from
+      // the chat pill (replaces the old static banner on this question).
+      if (value === "No") {
+        openChatPopup({ message: "Reminder: self-employment deadline is on 5 Oct 2026!" });
+      }
     }
     // Once every visible question has an answer, land on the overview rather
     // than stepping through the remaining pre-filled cards — this is what
