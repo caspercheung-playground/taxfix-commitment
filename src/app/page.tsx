@@ -19,7 +19,7 @@ export default function Home() {
             trust breaks at the highest-intent point in the funnel.
           </p>
           <Link
-            href="/income-sources"
+            href="/choose-tax-tool"
             className="mt-8 inline-flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-7 py-3.5 text-lg font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
           >
             Get started

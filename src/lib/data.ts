@@ -63,6 +63,12 @@ export const entryReasons: EntryReason[] = [
   { id: "other", title: "Something else applies to me", icon: "umbrella" },
 ];
 
+/** Case-study scope: only these situation cards are selectable */
+export const ENABLED_ENTRY_REASON_IDS = ["self-employment", "property", "hmrc-contact"] as const;
+
+/** Case-study scope: only freelance & rental income paths are active */
+export const ENABLED_INCOME_SOURCE_IDS = ["self-employment", "property"] as const;
+
 export const incomeSources: IncomeSource[] = [
   {
     id: "employment",
@@ -122,7 +128,7 @@ export function railLabel(category: Category): string {
 }
 
 /** The label the final rail step + breadcrumb use for the recommendation page */
-export const MATCH_STEP_LABEL = "Find accountant";
+export const MATCH_STEP_LABEL = "Find Expert";
 
 export const categories: Category[] = [
   {
@@ -193,9 +199,8 @@ export const categories: Category[] = [
         type: "yes-no",
         sidebarLabel: "Expenses under £1,000",
         prompt: "Were your total work-related expenses under £1,000?",
-        answerBanner: {
-          Yes: "Good news — as your expenses were under £1,000, we won't need any expense receipts.",
-        },
+        // Answering "Yes" opens an advisor chat popup on selection (not Continue)
+        // — see ChoiceQuestionCard in QuestionCard.tsx.
       },
       {
         id: "expense-types",

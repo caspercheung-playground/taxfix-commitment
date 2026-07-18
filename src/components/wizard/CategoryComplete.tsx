@@ -72,9 +72,9 @@ export function CategoryComplete({
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-              {nextCategory ? "Next" : "All done"}
+              {nextCategory ? "Next" : "NEXT"}
             </p>
-            <p className="font-bold">{nextCategory ? nextCategory.title : "Best Service for me"}</p>
+            <p className="font-bold">{nextCategory ? nextCategory.title : "Find Expert"}</p>
           </div>
         </div>
         <button
