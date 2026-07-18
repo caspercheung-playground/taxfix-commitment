@@ -29,6 +29,10 @@ export interface BaseQuestion {
   type: QuestionType;
   /** Return true to skip this question given the answers collected so far in this category */
   skipIf?: (answers: Record<string, string>) => boolean;
+  /** Override label for the primary CTA (defaults to "Continue" / "Update") */
+  ctaLabel?: string;
+  /** Label for the secondary action button; when set the button appears */
+  notSureLabel?: string;
 }
 
 export interface TextQuestion extends BaseQuestion {
@@ -56,9 +60,9 @@ export interface YesNoAmountQuestion extends BaseQuestion {
 export interface ChoiceQuestion extends BaseQuestion {
   type: "choice";
   options: string[];
-  /** "rows" renders a row-list (selector + icon on the left); defaults to pills */
-  layout?: "pills" | "rows";
-  /** Parallel to options; only read when layout === "rows" */
+  /** "rows" = row-list with icon on left; "cards" = icon-above-label card grid; defaults to pills */
+  layout?: "pills" | "rows" | "cards";
+  /** Parallel to options; used by "rows" and "cards" layouts */
   icons?: IconName[];
 }
 

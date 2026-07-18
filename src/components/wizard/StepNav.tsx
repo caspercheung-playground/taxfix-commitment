@@ -108,10 +108,10 @@ export function StepNav({
               <div className="flex flex-col items-center">
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                    step.state === "done"
+                    step.state === "current"
                       ? "bg-[var(--color-brand-dark)] text-white"
-                      : step.state === "current"
-                        ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)]"
+                      : step.state === "done"
+                        ? "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)]"
                         : step.state === "active-orange"
                           ? "bg-[#f59e0b] text-white"
                           : "border border-[var(--color-line)] bg-white text-[var(--color-muted)]"
@@ -131,9 +131,7 @@ export function StepNav({
                 {!last && (
                   <span
                     aria-hidden
-                    className={`h-7 w-px ${
-                      step.state === "done" ? "bg-[var(--color-brand-dark)]" : "bg-[var(--color-line)]"
-                    }`}
+                    className="h-7 w-px bg-[var(--color-brand-soft-2)]"
                   />
                 )}
               </div>

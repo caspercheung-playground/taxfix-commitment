@@ -21,6 +21,7 @@ type Controller = {
   onContinue: () => void;
   label?: string;
   onNotSure?: () => void;
+  notSureLabel?: string;
   notSureActive?: boolean;
 };
 
@@ -123,45 +124,34 @@ function CheckBadge() {
  * card content above it does — so Back, Continue and Not sure hold their place
  * across question transitions.
  */
-function ActionRow({ controller, onBack, isEditing }: { controller: Controller | null; onBack: () => void; isEditing?: boolean }) {
+function ActionRow({ controller, isEditing }: { controller: Controller | null; isEditing?: boolean }) {
   return (
-    <div className="mt-6 flex items-center justify-between gap-4 px-1">
+    <div className="mt-6 flex items-center gap-3 px-1">
       <button
         type="button"
-        onClick={onBack}
-        className="inline-flex items-center gap-2 font-bold text-[var(--color-brand-dark)] hover:text-[var(--color-ink)]"
+        disabled={!controller?.canContinue}
+        onClick={() => controller?.onContinue()}
+        className={`rounded-lg px-6 py-3 font-bold transition ${
+          controller?.canContinue
+            ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
+            : "cursor-not-allowed bg-[var(--color-line)] text-[var(--color-muted)]"
+        }`}
       >
-        <Icon name="arrow-left" size={18} />
-        {isEditing ? "Cancel" : "Back"}
+        {controller?.label ?? (isEditing ? "Update" : "Continue")}
       </button>
-      <div className="flex items-center gap-3">
-        {controller?.onNotSure && (
-          <button
-            type="button"
-            onClick={controller.onNotSure}
-            className={`rounded-lg border px-5 py-3 font-semibold transition ${
-              controller.notSureActive
-                ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)]"
-                : "border-[var(--color-brand-dark)] bg-white text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft-2)]"
-            }`}
-          >
-            Not sure
-          </button>
-        )}
+      {controller?.onNotSure && (
         <button
           type="button"
-          disabled={!controller?.canContinue}
-          onClick={() => controller?.onContinue()}
-          className={`inline-flex items-center gap-2 rounded-lg px-6 py-3 font-bold transition ${
-            controller?.canContinue
-              ? "bg-[var(--color-brand)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
-              : "cursor-not-allowed bg-[var(--color-line)] text-[var(--color-muted)]"
+          onClick={controller.onNotSure}
+          className={`rounded-lg px-5 py-3 font-semibold transition ${
+            controller.notSureActive
+              ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]"
+              : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
           }`}
         >
-          {controller?.label ?? (isEditing ? "Update" : "Continue")}
-          {controller?.canContinue && <Icon name="arrow-right" size={18} />}
+          {controller.notSureLabel ?? "Not sure"}
         </button>
-      </div>
+      )}
     </div>
   );
 }
@@ -173,7 +163,6 @@ export function QuestionCard({
   checklistState,
   onConfirm,
   onChecklistItemChange,
-  onBack,
   isEditing,
 }: {
   category: Category;
@@ -182,7 +171,6 @@ export function QuestionCard({
   checklistState: Record<string, ChecklistItemState>;
   onConfirm: (value: string) => void;
   onChecklistItemChange: (itemId: string, added: boolean, value: string) => void;
-  onBack: () => void;
   isEditing?: boolean;
 }) {
   // The shell persists across questions so AnimatePresence can play the
@@ -241,7 +229,7 @@ export function QuestionCard({
           {renderBody()}
         </motion.div>
       </AnimatePresence>
-      <ActionRow controller={controller} onBack={onBack} isEditing={isEditing} />
+      <ActionRow controller={controller} isEditing={isEditing} />
     </div>
   );
 }
@@ -419,13 +407,62 @@ function ChoiceQuestionCard({
   // Selection is held locally and only committed on Continue — the flow must
   // not auto-advance the moment an option is clicked.
   const [selected, setSelected] = useState(rawValue ?? "");
-  const rows = question.type === "choice" && question.layout === "rows";
+  const layout = question.type === "choice" ? question.layout : undefined;
+  const rows = layout === "rows";
+  const cards = layout === "cards";
+  const ctaLabel = question.type === "choice" ? question.ctaLabel : undefined;
+  const notSureLabel = question.type === "choice" ? question.notSureLabel : undefined;
 
   useEffect(() => {
-    register({ canContinue: !!selected, onContinue: () => onConfirm(selected) });
-  }, [selected, register, onConfirm]);
+    register({
+      canContinue: !!selected,
+      onContinue: () => onConfirm(selected),
+      label: ctaLabel,
+      notSureLabel,
+      onNotSure: notSureLabel ? () => onConfirm(notSureLabel) : undefined,
+    });
+  }, [selected, ctaLabel, notSureLabel, register, onConfirm]);
 
   const banner = selected && question.answerBanner?.[selected];
+
+  if (cards) {
+    const icons = question.type === "choice" ? question.icons : undefined;
+    return (
+      <QuestionShell question={question}>
+        <div className="grid grid-cols-2 gap-3">
+          {options.map((opt, i) => {
+            const active = selected === opt;
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setSelected(opt)}
+                className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-center font-semibold transition ${
+                  active
+                    ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-soft-2)]"
+                    : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
+                }`}
+              >
+                {icons?.[i] && (
+                  <span
+                    className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                      active
+                        ? "bg-[var(--color-brand-dark)] text-white"
+                        : "bg-white text-[var(--color-ink)]"
+                    }`}
+                  >
+                    <Icon name={icons[i]} size={20} />
+                  </span>
+                )}
+                <span className="text-sm leading-snug">{opt}</span>
+              </button>
+            );
+          })}
+        </div>
+        {banner && <PositiveBanner text={banner} />}
+      </QuestionShell>
+    );
+  }
 
   if (rows) {
     const icons = question.type === "choice" ? question.icons : undefined;

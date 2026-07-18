@@ -153,6 +153,18 @@ export const categories: Category[] = [
         banner: "Don't miss the registration deadline on 5 October 2026!",
       },
       {
+        id: "se-type",
+        type: "choice",
+        layout: "cards",
+        sidebarLabel: "Type of self-employment",
+        prompt: "What best describes your self-employment",
+        helper: "Choose one that fits best",
+        options: ["Freelancer / Contract worker", "Construction worker (CIS)", "Courier or driver", "Something else"],
+        icons: ["briefcase", "wrench", "car", "help-circle"],
+        ctaLabel: "Save",
+        notSureLabel: "Not self-employed",
+      },
+      {
         id: "start-date",
         type: "date",
         sidebarLabel: "Started self-employment",
