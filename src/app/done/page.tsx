@@ -68,7 +68,7 @@ export default function DonePage() {
             type="button"
             onClick={() => {
               resetWizard();
-              router.push("/income-sources");
+              router.push("/choose-tax-tool");
             }}
             className="rounded-full bg-[var(--color-brand)] px-6 py-3 font-bold text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-dark)] hover:text-white"
           >

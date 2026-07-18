@@ -100,7 +100,9 @@ function PlanTicket({
 export default function RecommendationPage() {
   const router = useRouter();
   const selectedSources = useAppStore((s) => s.incomeSources);
+  const entryReasons = useAppStore((s) => s.entryReasons);
   const answers = useAppStore((s) => s.answers);
+  const firstTimeFiler = useAppStore((s) => s.firstTimeFiler);
   const saRegistered = useAppStore((s) => s.saRegistered);
   const setCategoryIndex = useAppStore((s) => s.setCategoryIndex);
   const setQuestionIndex = useAppStore((s) => s.setQuestionIndex);
@@ -112,6 +114,8 @@ export default function RecommendationPage() {
   const mtd = mtdStatus(answers, selectedSources);
   const hasCapitalGains = selectedSources.includes("capital-gains");
   const needsUtrRegistration = saRegistered === "No";
+  const hmrcContacted = entryReasons.includes("hmrc-contact");
+  const isFirstTimeFiler = firstTimeFiler === "Yes";
 
   const incomeCategoryNames = incomeSources
     .filter((s) => selectedSources.includes(s.id) && categories.some((c) => c.incomeSourceId === s.id))
@@ -121,6 +125,11 @@ export default function RecommendationPage() {
     incomeCategoryNames.length > 1
       ? `You have multiple income streams (${listOf(incomeCategoryNames)}) — one return has to bring them all together.`
       : `You earn through ${incomeCategoryNames[0] ?? "self-employment"}, which means filing a full Self Assessment return.`,
+    ...(hmrcContacted
+      ? [
+          "HMRC has already contacted you — expert support helps you understand and reply with confidence.",
+        ]
+      : []),
     ...(needsUtrRegistration
       ? ["HMRC letter support and audit help", "UTR registration handled"]
       : []),
@@ -133,6 +142,7 @@ export default function RecommendationPage() {
   // "How It Works" moved from the plan ticket into the left panel's "Next
   // steps" list (see StepNav) — icons there are always the lock glyph.
   const nextSteps = [
+    ...(hmrcContacted ? [{ label: "Review HMRC contact", caption: "Accountant" }] : []),
     ...(needsUtrRegistration ? [{ label: "Register UTR", caption: "Accountant (2 weeks)" }] : []),
     { label: "Upload documents", caption: "You" },
     { label: "Review and filing", caption: "Accountant" },
@@ -200,6 +210,18 @@ export default function RecommendationPage() {
               Secure your filing slot with a UK-accredited specialist today. All of our tax return
               services are covered by our 100% Accuracy Guarantee.
             </p>
+
+            {isFirstTimeFiler && (
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm font-bold text-[var(--color-ink)]">
+                  You have passed the Self-employment registration deadline (5th August 2026).
+                </p>
+                <p className="mt-1.5 text-sm text-[var(--color-muted)]">
+                  Your expert can register you as part of your plan — or you can take care of it
+                  yourself.
+                </p>
+              </div>
+            )}
 
             <div className="mt-6 rounded-2xl bg-[var(--color-cream)] p-4">
               <p className="text-sm font-bold text-[var(--color-brand-dark)]">

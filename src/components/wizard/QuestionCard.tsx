@@ -27,6 +27,16 @@ type Controller = {
 
 type Register = (controller: Controller) => void;
 
+/**
+ * Shared visual states for text / number / currency fields:
+ * default = gray border, hover/focus = light green border, filled = dark green border.
+ */
+function fieldShellClass(filled: boolean): string {
+  return filled
+    ? "border-[var(--color-brand-dark)] bg-white"
+    : "border-[var(--color-line)] bg-white hover:border-[var(--color-brand)] focus:border-[var(--color-brand)] focus-within:border-[var(--color-brand)]";
+}
+
 // Snappy, ease-out: outgoing card lifts up + fades, incoming rises from below.
 const cardVariants = {
   initial: { opacity: 0, y: 24 },
@@ -235,11 +245,9 @@ function TextQuestionCard({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={question.placeholder}
-        className={`w-full rounded-xl border bg-white px-4 py-3 text-[var(--color-ink)] outline-none transition ${
-          value.trim()
-            ? "border-[var(--color-brand-dark)]"
-            : "border-transparent hover:border-[var(--color-line)] focus:border-[var(--color-brand)]"
-        }`}
+        className={`w-full rounded-xl border px-4 py-3 text-[var(--color-ink)] outline-none transition ${fieldShellClass(
+          !!value.trim()
+        )}`}
       />
     </QuestionShell>
   );
@@ -268,7 +276,9 @@ function DateSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-xl border border-[var(--color-line)] bg-white px-4 py-3 text-[var(--color-ink)] outline-none focus:border-[var(--color-brand)]"
+      className={`rounded-xl border bg-white px-4 py-3 text-[var(--color-ink)] outline-none transition ${fieldShellClass(
+        !!value
+      )}`}
     >
       <option value="" disabled>
         {placeholder}
@@ -357,11 +367,9 @@ function CurrencyQuestionCard({
   return (
     <QuestionShell question={question}>
       <div
-        className={`flex w-fit overflow-hidden rounded-xl border transition ${
-          value.trim()
-            ? "border-[var(--color-brand-dark)]"
-            : "border-transparent hover:border-[var(--color-line)]"
-        }`}
+        className={`flex w-fit overflow-hidden rounded-xl border transition ${fieldShellClass(
+          !!value.trim()
+        )}`}
       >
         <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">£</span>
         <input
@@ -369,7 +377,7 @@ function CurrencyQuestionCard({
           inputMode="decimal"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-40 bg-white px-4 py-3 outline-none"
+          className="w-40 bg-transparent px-4 py-3 outline-none"
           placeholder="0"
         />
       </div>
@@ -394,11 +402,23 @@ function ChoiceQuestionCard({
   // Selection is held locally and only committed on Continue — the flow must
   // not auto-advance the moment an option is clicked.
   const [selected, setSelected] = useState(rawValue ?? "");
+  const openPopup = useChatPopup((s) => s.open);
   const layout = question.type === "choice" ? question.layout : undefined;
   const rows = layout === "rows";
   const cards = layout === "cards";
   const ctaLabel = question.type === "choice" ? question.ctaLabel : undefined;
   const notSureLabel = question.type === "choice" ? question.notSureLabel : undefined;
+
+  function handleSelect(opt: string) {
+    setSelected(opt);
+    // Good-news expenses message fires on Yes click, not on Continue.
+    if (question.id === "expenses-under-1000" && opt === "Yes") {
+      openPopup({
+        message:
+          "Good news, as your expenses were under £1,000, we won't need any expense receipts.",
+      });
+    }
+  }
 
   useEffect(() => {
     register({
@@ -423,7 +443,7 @@ function ChoiceQuestionCard({
               <button
                 key={opt}
                 type="button"
-                onClick={() => setSelected(opt)}
+                onClick={() => handleSelect(opt)}
                 className={`flex flex-col items-center gap-3 rounded-2xl border p-5 text-center font-semibold transition ${
                   active
                     ? "border-[var(--color-brand-dark)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
@@ -463,7 +483,7 @@ function ChoiceQuestionCard({
               selected={selected === opt}
               icon={icons?.[i]}
               label={opt}
-              onClick={() => setSelected(opt)}
+              onClick={() => handleSelect(opt)}
             />
           ))}
         </div>
@@ -483,7 +503,7 @@ function ChoiceQuestionCard({
             <button
               key={opt}
               type="button"
-              onClick={() => setSelected(opt)}
+              onClick={() => handleSelect(opt)}
               className={`rounded-lg border px-7 py-3 font-bold transition ${
                 active
                   ? "border-[var(--color-brand-dark)] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
@@ -530,11 +550,9 @@ function YesNoAmountQuestionCard({
         <div className="mt-4">
           <p className="mb-2 font-semibold">{question.amountPrompt}</p>
           <div
-            className={`flex w-fit overflow-hidden rounded-xl border transition ${
-              amount.trim()
-                ? "border-[var(--color-brand-dark)]"
-                : "border-transparent hover:border-[var(--color-line)]"
-            }`}
+            className={`flex w-fit overflow-hidden rounded-xl border transition ${fieldShellClass(
+              !!amount.trim()
+            )}`}
           >
             <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">£</span>
             <input
@@ -542,7 +560,7 @@ function YesNoAmountQuestionCard({
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-40 bg-white px-4 py-3 outline-none"
+              className="w-40 bg-transparent px-4 py-3 outline-none"
               placeholder="0"
             />
           </div>
@@ -681,12 +699,7 @@ function ChecklistQuestionCard({
                   >
                     <Icon name={added ? "check" : item.icon} size={18} />
                   </span>
-                  <span className="min-w-0 font-bold">
-                    {item.label}
-                    {added && state?.value && (
-                      <span className="font-medium text-[var(--color-muted)]"> — {state.value}</span>
-                    )}
-                  </span>
+                  <span className="min-w-0 font-bold">{item.label}</span>
                 </div>
                 {added ? (
                   <button
@@ -711,14 +724,12 @@ function ChecklistQuestionCard({
                   in place of a modal — stays visible while added, even if
                   another item is opened at the same time. */}
               {added && (
-                <div className="mt-3 bg-white p-4 text-left">
+                <div className="mt-3 text-left">
                   <p className="font-medium">{item.subPrompt}</p>
                   <div
-                    className={`mt-3 flex w-fit overflow-hidden rounded-xl border transition ${
-                      state?.value?.trim()
-                        ? "border-[var(--color-brand-dark)]"
-                        : "border-transparent hover:border-[var(--color-line)]"
-                    }`}
+                    className={`mt-3 flex w-fit overflow-hidden rounded-xl border transition ${fieldShellClass(
+                      !!state?.value?.trim()
+                    )}`}
                   >
                     {item.subType === "currency" && (
                       <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">
@@ -731,7 +742,7 @@ function ChecklistQuestionCard({
                       value={state?.value ?? ""}
                       onChange={(e) => onChecklistItemChange(item.id, true, e.target.value)}
                       placeholder={item.subType === "number" ? "Hours per week" : "0"}
-                      className="w-40 px-4 py-3 outline-none"
+                      className="w-40 bg-transparent px-4 py-3 outline-none"
                     />
                     {item.subType === "number" && (
                       <span className="flex items-center bg-[var(--color-cream)] px-4 py-3 text-sm text-[var(--color-muted)]">
