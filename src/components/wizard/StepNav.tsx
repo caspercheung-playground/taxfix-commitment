@@ -131,9 +131,7 @@ export function StepNav({
                 {!last && (
                   <span
                     aria-hidden
-                    className={`h-7 w-px ${
-                      step.state === "done" ? "bg-[var(--color-brand-dark)]" : "bg-[var(--color-line)]"
-                    }`}
+                    className="h-7 w-px bg-[var(--color-brand-soft-2)]"
                   />
                 )}
               </div>

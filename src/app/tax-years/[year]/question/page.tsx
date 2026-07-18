@@ -74,6 +74,7 @@ export default function QuestionWizardPage() {
     }
     if (isEditing) {
       setIsEditing(false);
+      setQuestionIndex(visibleQuestions.length);
       return;
     }
     if (questionIndex > 0) {

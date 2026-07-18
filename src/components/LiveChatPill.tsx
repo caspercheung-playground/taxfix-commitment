@@ -16,14 +16,14 @@ export function LiveChatPill() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full bg-[var(--color-cream)] py-1.5 pl-1.5 pr-4 text-sm font-semibold transition hover:bg-[var(--color-cream-border)]"
+        className="flex items-center gap-2 rounded-full bg-[#e9ecfb] py-1.5 pl-1.5 pr-4 text-sm font-semibold text-[#33355a] transition hover:bg-[#d9ddf7]"
       >
         <img
           src="/avatar-zoya.jpg"
           alt=""
           className="h-8 w-8 rounded-full object-cover"
         />
-        Live chat
+        Help
       </button>
 
       <Modal open={open} title="Live chat" onClose={() => setOpen(false)}>

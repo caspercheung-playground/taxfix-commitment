@@ -11,25 +11,25 @@ export function HeroBackdrop() {
       <img
         src="/hero/hero-arrow.png"
         alt=""
-        className="absolute left-0 top-[15%] w-[9%] max-w-[140px]"
+        className="absolute left-0 top-[15%] w-[13.5%] max-w-[210px]"
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/hero/hero-percent.png"
         alt=""
-        className="absolute right-0 top-[10%] w-[7%] max-w-[110px]"
+        className="absolute right-0 top-[10%] w-[10.5%] max-w-[165px]"
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/hero/hero-coin.png"
         alt=""
-        className="absolute bottom-0 left-[5%] w-[10%] max-w-[160px]"
+        className="absolute bottom-0 left-[5%] w-[15%] max-w-[240px]"
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/hero/hero-card.png"
         alt=""
-        className="absolute bottom-[8%] right-0 w-[6%] max-w-[100px]"
+        className="absolute bottom-[8%] right-0 w-[9%] max-w-[150px]"
       />
     </div>
   );

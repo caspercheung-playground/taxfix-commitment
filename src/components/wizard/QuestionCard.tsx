@@ -21,6 +21,7 @@ type Controller = {
   onContinue: () => void;
   label?: string;
   onNotSure?: () => void;
+  notSureLabel?: string;
   notSureActive?: boolean;
 };
 
@@ -148,7 +149,7 @@ function ActionRow({ controller, isEditing }: { controller: Controller | null; i
               : "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
           }`}
         >
-          Not sure
+          {controller.notSureLabel ?? "Not sure"}
         </button>
       )}
     </div>
@@ -406,13 +407,62 @@ function ChoiceQuestionCard({
   // Selection is held locally and only committed on Continue — the flow must
   // not auto-advance the moment an option is clicked.
   const [selected, setSelected] = useState(rawValue ?? "");
-  const rows = question.type === "choice" && question.layout === "rows";
+  const layout = question.type === "choice" ? question.layout : undefined;
+  const rows = layout === "rows";
+  const cards = layout === "cards";
+  const ctaLabel = question.type === "choice" ? question.ctaLabel : undefined;
+  const notSureLabel = question.type === "choice" ? question.notSureLabel : undefined;
 
   useEffect(() => {
-    register({ canContinue: !!selected, onContinue: () => onConfirm(selected) });
-  }, [selected, register, onConfirm]);
+    register({
+      canContinue: !!selected,
+      onContinue: () => onConfirm(selected),
+      label: ctaLabel,
+      notSureLabel,
+      onNotSure: notSureLabel ? () => onConfirm(notSureLabel) : undefined,
+    });
+  }, [selected, ctaLabel, notSureLabel, register, onConfirm]);
 
   const banner = selected && question.answerBanner?.[selected];
+
+  if (cards) {
+    const icons = question.type === "choice" ? question.icons : undefined;
+    return (
+      <QuestionShell question={question}>
+        <div className="grid grid-cols-2 gap-3">
+          {options.map((opt, i) => {
+            const active = selected === opt;
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setSelected(opt)}
+                className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-center font-semibold transition ${
+                  active
+                    ? "border-[var(--color-brand-dark)] bg-[var(--color-brand-soft-2)]"
+                    : "border-transparent bg-[var(--color-cream)] hover:bg-[var(--color-cream-border)]"
+                }`}
+              >
+                {icons?.[i] && (
+                  <span
+                    className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                      active
+                        ? "bg-[var(--color-brand-dark)] text-white"
+                        : "bg-white text-[var(--color-ink)]"
+                    }`}
+                  >
+                    <Icon name={icons[i]} size={20} />
+                  </span>
+                )}
+                <span className="text-sm leading-snug">{opt}</span>
+              </button>
+            );
+          })}
+        </div>
+        {banner && <PositiveBanner text={banner} />}
+      </QuestionShell>
+    );
+  }
 
   if (rows) {
     const icons = question.type === "choice" ? question.icons : undefined;

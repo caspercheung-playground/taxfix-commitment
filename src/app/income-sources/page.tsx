@@ -22,7 +22,7 @@ export default function IncomeSourcesPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <HeroBackdrop />
-      <main className="relative z-10 mx-auto w-full max-w-4xl flex-1 px-5 py-8">
+      <main className="relative z-10 mx-auto w-full max-w-4xl flex-1 px-5 py-16 sm:py-24">
         <div className="text-center">
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Welcome! Select where does your income come from
