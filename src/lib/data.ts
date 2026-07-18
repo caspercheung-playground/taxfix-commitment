@@ -1,32 +1,73 @@
-import type { Category, IncomeSource, ReasonCard } from "./types";
+import type { Category, IncomeSource } from "./types";
 
 export const TAX_YEAR = "2025";
 export const TAX_YEAR_RANGE = "6 Apr 2025 – 5 Apr 2026";
+/** Short form used where the full range doesn't fit, e.g. the flow rail caption */
+export const TAX_YEAR_LABEL = "2025/26";
 
-export const reasonCards: ReasonCard[] = [
-  { id: "self-employed", label: "I earned money through self-employment", icon: "briefcase" },
-  { id: "relief", label: "I'm claiming a tax relief or refund", icon: "refresh" },
-  { id: "property", label: "I earned income from property", icon: "home" },
-  { id: "dividends", label: "I earned dividends or interest", icon: "percent" },
-  { id: "capital-gains", label: "I earned capital gains", icon: "chart" },
-  { id: "director", label: "I'm a director of a company", icon: "building" },
-  { id: "hmrc-letter", label: "HMRC contacted me about my tax", icon: "mail" },
-  { id: "mtd", label: "I'm affected by Making Tax Digital", icon: "monitor" },
-  { id: "other", label: "Something else applies to me", icon: "umbrella" },
-];
-
-/** Maps a reason card id to the income source it should pre-select */
-export const reasonToIncomeSource: Record<string, string> = {
-  "self-employed": "self-employment",
-  property: "property",
-  "capital-gains": "capital-gains",
+/** The plan the flow recommends — mirrors the "Tax Return Plus" card in the design */
+export const recommendedPlan = {
+  name: "Tax Return Plus",
+  tagline: "Get expert support for complete peace of mind.",
+  price: "£149",
+  period: "/year",
+  discount: "£50 OFF",
+  renewal: "Renews at £199/year. Cancel anytime.",
+  cta: "Match me with an accountant",
+  socialProof: "1100+ users chose it this week",
+  featuresHeading: "All the goodness of Essentials, plus:",
+  features: [
+    {
+      title: "No more HMRC letter fear",
+      body: "Expert support to understand and reply on HMRC requests",
+    },
+    {
+      title: "Don't be alone if HMRC investigates you",
+      body: "Accountant guidance & support should HMRC decide to investigate your return",
+    },
+  ],
 };
+
+/**
+ * Keyed on HMRC's Making Tax Digital thresholds — £50,000 (applies from April
+ * 2026) and £30,000 (applies from April 2027). The bands are uneven on purpose;
+ * the boundaries are regulatory, not presentational. Judged on combined
+ * self-employment + property income, never on a single stream — see mtdStatus.
+ */
+export const mtdMessages: Record<"under-30k" | "30k-to-50k" | "50k-plus", string> = {
+  "under-30k": "You're not affected by Making Tax Digital under current or upcoming rules.",
+  "30k-to-50k":
+    "Making Tax Digital doesn't apply to you this year, but will from April 2027 when the threshold drops to £30,000.",
+  "50k-plus":
+    "Since your combined income is over £50,000, Making Tax Digital applies to you from April 2026. We'll confirm this as part of your plan.",
+};
+
+export interface EntryReason {
+  id: string;
+  title: string;
+  icon: IncomeSource["icon"];
+  /** When set, choosing this reason pre-selects the matching income source */
+  incomeSourceId?: string;
+}
+
+/** The "What brings you here" onboarding grid — precedes income source selection */
+export const entryReasons: EntryReason[] = [
+  { id: "self-employment", title: "I earned money through self-employment", icon: "briefcase", incomeSourceId: "self-employment" },
+  { id: "tax-relief", title: "I'm claiming a tax relief or refund", icon: "refresh" },
+  { id: "property", title: "I earned income from property", icon: "home", incomeSourceId: "property" },
+  { id: "dividends", title: "I earned dividends or interest", icon: "percent", incomeSourceId: "dividends" },
+  { id: "capital-gains", title: "I earned capital gains", icon: "chart", incomeSourceId: "capital-gains" },
+  { id: "director", title: "I'm a director of a company", icon: "building" },
+  { id: "hmrc-contact", title: "HMRC contacted me about my tax", icon: "mail" },
+  { id: "mtd", title: "I'm affected by Making Tax Digital", icon: "monitor" },
+  { id: "other", title: "Something else applies to me", icon: "umbrella" },
+];
 
 export const incomeSources: IncomeSource[] = [
   {
     id: "employment",
     title: "Employment",
-    description: "Salaried employee for a company (pick even if tax has already been deducted)",
+    description: "Salaried employee for a company",
     icon: "briefcase",
     confirm: {
       question: `Did you earn any salary through employment between ${TAX_YEAR_RANGE}?`,
@@ -36,35 +77,52 @@ export const incomeSources: IncomeSource[] = [
   {
     id: "self-employment",
     title: "Self-employment",
-    tag: "Freelance or contract work",
     description: "Earnings as sole trader, e.g. freelancer, contractor or driver",
-    icon: "briefcase",
+    icon: "laptop",
   },
   {
     id: "property",
-    title: "Property rental income",
+    title: "Property",
     description: "Income from renting or leasing property",
     icon: "home",
   },
   {
-    id: "capital-gains",
-    title: "Capital gains/losses",
-    description: "Income or loss from selling assets such as shares or property",
+    id: "dividends",
+    title: "Dividends and interest",
+    description: "Income from shares, savings or investments",
     icon: "chart",
   },
   {
-    id: "pensions",
-    title: "Pensions and benefits",
-    description: "Received a private or state pension, or other income benefits",
-    icon: "umbrella",
+    id: "capital-gains",
+    title: "Sold assets and shares",
+    description: "Income or loss from selling assets such as shares or property",
+    icon: "coins",
   },
   {
-    id: "other",
-    title: "Other income",
-    description: "Any other income not covered above",
-    icon: "plus-circle",
+    id: "foreign",
+    title: "Foreign income",
+    description: "Income from outside the UK",
+    icon: "globe",
   },
 ];
+
+/**
+ * How each category is named in the "My Progress" rail and breadcrumb — kept
+ * separate from the in-flow `title` so the rail reads as a consistent set
+ * ("Self-employment", "Property income", "Allowances").
+ */
+export const CATEGORY_RAIL_LABELS: Record<string, string> = {
+  "self-employment": "Self-employment",
+  property: "Property income",
+  general: "Allowances",
+};
+
+export function railLabel(category: Category): string {
+  return CATEGORY_RAIL_LABELS[category.id] ?? category.title;
+}
+
+/** The label the final rail step + breadcrumb use for the recommendation page */
+export const MATCH_STEP_LABEL = "Match with Accountant";
 
 export const categories: Category[] = [
   {
@@ -75,18 +133,44 @@ export const categories: Category[] = [
     doneHeading: "Nice one!",
     doneSub: "That's everything for your self-employment income.",
     questions: [
+      // The single source of truth for filer/UTR-registration status — see
+      // the "registered-hmrc" question below and saRegistered in the store.
       {
-        id: "activity",
+        id: "first-time-filer",
+        type: "yes-no",
+        sidebarLabel: "First-time filer",
+        prompt: "Is this your first time doing Self Assessment?",
+      },
+      {
+        id: "registered-hmrc",
+        type: "yes-no",
+        sidebarLabel: "Registered with HMRC",
+        prompt: "Have you registered for self-employment online at HMRC?",
+        infoButton: {
+          title: "Registering for Self Assessment",
+          body: "If you're newly self-employed, you need to register with HMRC to get a Unique Taxpayer Reference (UTR) before you can file a return. If you're not sure, choose \"No\" and we'll register you as part of your plan.",
+        },
+        banner: "Don't miss the registration deadline on 5 October 2026!",
+      },
+      {
+        id: "start-date",
+        type: "date",
+        sidebarLabel: "Started self-employment",
+        prompt: "When did you start self-employment?",
+        defaultValue: "2025-04-06",
+      },
+      {
+        id: "work-type",
         type: "text",
-        sidebarLabel: "Description of activity",
-        prompt: "Your self-employment: what kind of work do you do?",
-        placeholder: "e.g. graphic designer, driver, consultant",
+        sidebarLabel: "Type of work",
+        prompt: "Describe your type of work",
+        placeholder: "e.g. Freelance product designer, artist selling paintings",
       },
       {
         id: "income-amount",
         type: "currency",
         sidebarLabel: "Self-employed income",
-        prompt: "How much self-employed income did you earn last tax year?",
+        prompt: "Self-employed income earned last tax year",
         helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
         notSure: true,
       },
@@ -95,39 +179,34 @@ export const categories: Category[] = [
         type: "yes-no",
         sidebarLabel: "Expenses under £1,000",
         prompt: "Were your total work-related expenses under £1,000?",
-        contextNote:
-          "Next, we'll ask about some general expenses related to your self-employment. Later you'll be able to enter exact details.",
+        answerBanner: {
+          Yes: "Good news — as your expenses were under £1,000, we won't need any expense receipts.",
+        },
       },
       {
         id: "expense-types",
         type: "checklist-add",
         sidebarLabel: "Business expenses",
-        prompt: "Let's take a closer look at your business expenses",
-        helper: "Select all that apply, then continue.",
+        prompt: "Let's have a closer look at your business expenses.",
+        helper: "Select all that apply to you.",
         skipIf: (answers) => answers["expenses-under-1000"] === "Yes",
         items: [
           {
-            id: "travel",
-            label: "Business trips, travel to clients or workplace",
-            subPrompt: "How much did you spend on business travel?",
+            id: "business-expenses",
+            label: "Had work-related business expenses (£2,000)",
+            subPrompt: "How much did you spend on business expenses?",
             subType: "currency",
           },
           {
             id: "home",
-            label: "Worked from home",
+            label: "Worked from home whilst self-employed",
             subPrompt: "How many hours a week did you work from home?",
             subType: "number",
           },
           {
             id: "vehicle",
-            label: "Used a car or van for business",
+            label: "Used car or van for business",
             subPrompt: "How much did you spend running your vehicle?",
-            subType: "currency",
-          },
-          {
-            id: "training",
-            label: "Further education and training",
-            subPrompt: "How much did you spend on training?",
             subType: "currency",
           },
         ],
@@ -136,7 +215,7 @@ export const categories: Category[] = [
   },
   {
     id: "property",
-    title: "Property earnings",
+    title: "Property income",
     icon: "home",
     incomeSourceId: "property",
     doneHeading: "All sorted!",
@@ -145,16 +224,27 @@ export const categories: Category[] = [
       {
         id: "property-type",
         type: "pills-multi",
+        layout: "rows",
         sidebarLabel: "Property income type",
         prompt: "What type of property income did you receive?",
         helper: "Select all that apply",
         options: ["Rented a flat or house", "Rented a room", "Furnished holiday let"],
+        icons: ["home", "building", "umbrella"],
+      },
+      {
+        id: "property-income",
+        type: "currency",
+        sidebarLabel: "Rental income",
+        prompt: "How much rental income did you earn last tax year?",
+        helper: `From ${TAX_YEAR_RANGE}. An estimate is fine.`,
+        notSure: true,
       },
       {
         id: "mortgage",
-        type: "yes-no",
+        type: "yes-no-amount",
         sidebarLabel: "Mortgage on property",
         prompt: "Do you have a mortgage on the property you rented out?",
+        amountPrompt: "How much mortgage interest did you pay?",
       },
       {
         id: "property-expenses",
@@ -163,6 +253,35 @@ export const categories: Category[] = [
         prompt: "What was the total amount of expenses from property rental?",
         helper: "An estimate is fine.",
         notSure: true,
+      },
+    ],
+  },
+  // No incomeSourceId, so this always runs — and it must stay last, since its
+  // completion screen is the one that hands off to the recommendation.
+  {
+    id: "general",
+    title: "Allowances",
+    icon: "plus-circle",
+    doneHeading: "That's everything",
+    doneSub: "We've got what we need to find your best plan.",
+    questions: [
+      // UTR/registration status is captured once, in the self-employment
+      // questionnaire's "registered-hmrc" question (saRegistered in the
+      // store) — no question here asks about it again.
+      {
+        id: "allowances",
+        type: "pills-multi",
+        layout: "rows",
+        sidebarLabel: "Allowances",
+        prompt: "And finally, to avoid overpaying your taxes, add all that applied to you",
+        helper: `Between ${TAX_YEAR_RANGE}`,
+        options: [
+          "I made contributions into my pension",
+          "I gave money to charities",
+          "I participated in investment schemes (eg EIS, SEIS, VCT)",
+          "My spouse earned less than £12,500",
+          "I have a student loan or made student loan repayments",
+        ],
       },
     ],
   },

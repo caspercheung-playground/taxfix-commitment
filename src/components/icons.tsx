@@ -20,7 +20,19 @@ export type IconName =
   | "help-circle"
   | "globe"
   | "user"
-  | "sparkles";
+  | "sparkles"
+  | "clock"
+  | "upload"
+  | "send"
+  | "lock"
+  | "pencil"
+  | "laptop"
+  | "wrench"
+  | "package"
+  | "coins"
+  | "car"
+  | "phone"
+  | "bell";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -186,11 +198,105 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
         </>,
         props
       );
+    case "lock":
+      return base(
+        <>
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </>,
+        props
+      );
+    case "pencil":
+      return base(
+        <>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </>,
+        props
+      );
+    case "laptop":
+      return base(
+        <>
+          <rect x="3" y="5" width="18" height="12" rx="2" />
+          <path d="M2 20h20" />
+        </>,
+        props
+      );
+    case "wrench":
+      return base(
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />,
+        props
+      );
+    case "package":
+      return base(
+        <>
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path d="m3.3 7 8.7 5 8.7-5" />
+          <path d="M12 22V12" />
+        </>,
+        props
+      );
+    case "coins":
+      return base(
+        <>
+          <ellipse cx="12" cy="5" rx="9" ry="3" />
+          <path d="M3 5v14a9 3 0 0 0 18 0V5" />
+          <path d="M3 12a9 3 0 0 0 18 0" />
+        </>,
+        props
+      );
     case "sparkles":
       return base(
         <>
           <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
           <path d="m6 6 2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18" />
+        </>,
+        props
+      );
+    case "clock":
+      return base(
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 3" />
+        </>,
+        props
+      );
+    case "upload":
+      return base(
+        <>
+          <path d="M12 15V4" />
+          <path d="m7 8 5-4 5 4" />
+          <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+        </>,
+        props
+      );
+    case "send":
+      return base(
+        <>
+          <path d="M21 3 10 14" />
+          <path d="M21 3 14 21l-4-7-7-4Z" />
+        </>,
+        props
+      );
+    case "car":
+      return base(
+        <>
+          <path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13" />
+          <rect x="3" y="13" width="18" height="5" rx="1.5" />
+          <circle cx="7.5" cy="18.5" r="1.5" />
+          <circle cx="16.5" cy="18.5" r="1.5" />
+        </>,
+        props
+      );
+    case "phone":
+      return base(
+        <path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1.1-.2c1.2.5 2.5.8 3.9.8a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1c0 1.4.3 2.7.8 3.9a1 1 0 0 1-.2 1.1L6.6 10.8Z" />,
+        props
+      );
+    case "bell":
+      return base(
+        <>
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </>,
         props
       );
