@@ -235,7 +235,11 @@ function TextQuestionCard({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={question.placeholder}
-        className="w-full rounded-xl border border-[var(--color-line)] bg-white px-4 py-3 text-[var(--color-ink)] outline-none focus:border-[var(--color-brand)]"
+        className={`w-full rounded-xl border bg-white px-4 py-3 text-[var(--color-ink)] outline-none transition ${
+          value.trim()
+            ? "border-[var(--color-brand-dark)]"
+            : "border-transparent hover:border-[var(--color-line)] focus:border-[var(--color-brand)]"
+        }`}
       />
     </QuestionShell>
   );
@@ -352,7 +356,13 @@ function CurrencyQuestionCard({
 
   return (
     <QuestionShell question={question}>
-      <div className="flex overflow-hidden rounded-xl border border-[var(--color-line)] w-fit">
+      <div
+        className={`flex w-fit overflow-hidden rounded-xl border transition ${
+          value.trim()
+            ? "border-[var(--color-brand-dark)]"
+            : "border-transparent hover:border-[var(--color-line)]"
+        }`}
+      >
         <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">£</span>
         <input
           type="number"
@@ -519,7 +529,13 @@ function YesNoAmountQuestionCard({
       {yn === "Yes" && (
         <div className="mt-4">
           <p className="mb-2 font-semibold">{question.amountPrompt}</p>
-          <div className="flex w-fit overflow-hidden rounded-xl border border-[var(--color-line)]">
+          <div
+            className={`flex w-fit overflow-hidden rounded-xl border transition ${
+              amount.trim()
+                ? "border-[var(--color-brand-dark)]"
+                : "border-transparent hover:border-[var(--color-line)]"
+            }`}
+          >
             <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">£</span>
             <input
               type="number"
@@ -697,7 +713,13 @@ function ChecklistQuestionCard({
               {added && (
                 <div className="mt-3 bg-white p-4 text-left">
                   <p className="font-medium">{item.subPrompt}</p>
-                  <div className="mt-3 flex w-fit overflow-hidden rounded-xl border border-[var(--color-line)]">
+                  <div
+                    className={`mt-3 flex w-fit overflow-hidden rounded-xl border transition ${
+                      state?.value?.trim()
+                        ? "border-[var(--color-brand-dark)]"
+                        : "border-transparent hover:border-[var(--color-line)]"
+                    }`}
+                  >
                     {item.subType === "currency" && (
                       <span className="flex items-center bg-[var(--color-ink)] px-4 py-3 font-bold text-white">
                         £
