@@ -78,6 +78,7 @@ export interface PillsMultiQuestion extends BaseQuestion {
 export interface ChecklistItemDef {
   id: string;
   label: string;
+  icon: IconName;
   subPrompt: string;
   subType: "currency" | "number";
   /**

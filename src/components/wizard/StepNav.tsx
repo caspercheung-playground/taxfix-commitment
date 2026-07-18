@@ -55,7 +55,7 @@ export function StepNav({
   onIncomeSources: () => void;
   onSelectCategory: (index: number) => void;
   onMatch: () => void;
-  /** Recommendation page only: the "What happens next" list */
+  /** Recommendation page only: the "What happens next" list, moved here from the plan card */
   nextSteps?: { label: string; caption: string }[];
 }) {
   const allComplete = activeCategories.every((c) => isCategoryComplete(c, answers));
@@ -95,12 +95,8 @@ export function StepNav({
   ];
 
   return (
-    <aside className="w-full shrink-0 self-start rounded-3xl border border-[var(--color-line)] bg-white p-6 sm:w-72">
-      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-muted)]">
-        My Progress
-      </p>
-
-      <ol className="mt-5">
+    <aside className="w-full shrink-0 self-start rounded-3xl bg-[var(--color-cream)] p-6 sm:w-72">
+      <ol>
         {steps.map((step, i) => {
           const last = i === steps.length - 1;
           const highlighted = step.state === "current" || step.state === "active-orange";
@@ -111,30 +107,21 @@ export function StepNav({
               <div className="flex flex-col items-center">
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                    step.state === "current"
-                      ? "bg-[var(--color-brand-dark)] text-white"
-                      : step.state === "done"
-                        ? "bg-[var(--color-brand-soft-2)] text-[var(--color-brand-dark)]"
-                        : step.state === "active-orange"
-                          ? "bg-[#f59e0b] text-white"
-                          : "border border-[var(--color-line)] bg-white text-[var(--color-muted)]"
+                    step.state === "done"
+                      ? "border border-[var(--color-brand-dark)] bg-white text-[var(--color-brand-dark)]"
+                      : step.state === "current" || step.state === "active-orange"
+                        ? "bg-[var(--color-brand-dark)] text-white"
+                        : "border border-[var(--color-line)] bg-white text-[var(--color-muted)]"
                   }`}
                 >
-                  <Icon
-                    name={
-                      step.state === "done"
-                        ? "check"
-                        : step.state === "active-orange"
-                          ? "arrow-right"
-                          : step.icon
-                    }
-                    size={18}
-                  />
+                  <Icon name={step.state === "done" ? "check" : step.icon} size={16} />
                 </span>
                 {!last && (
                   <span
                     aria-hidden
-                    className="h-7 w-px bg-[var(--color-brand-soft-2)]"
+                    className={`h-7 w-px ${
+                      step.state === "done" ? "bg-[var(--color-brand-dark)]" : "bg-[var(--color-line)]"
+                    }`}
                   />
                 )}
               </div>
@@ -159,7 +146,7 @@ export function StepNav({
                 >
                   {step.label}
                 </span>
-                {clickable && (
+                {(clickable || highlighted) && (
                   <Icon
                     name="chevron-right"
                     size={16}

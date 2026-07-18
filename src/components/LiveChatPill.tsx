@@ -26,7 +26,7 @@ export function LiveChatPill() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full bg-[#e9ecfb] py-1.5 pl-1.5 pr-4 text-sm font-semibold text-[#33355a] transition hover:bg-[#d9ddf7]"
+        className="flex h-11 items-center gap-2 rounded-full bg-[#e9ecfb] pl-1.5 pr-4 text-sm font-semibold text-[#33355a] transition hover:bg-[#dbe0f7]"
       >
         <img
           src="/avatar-zoya.jpg"

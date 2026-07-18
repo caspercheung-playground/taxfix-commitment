@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/icons";
 
 /**
- * Single-crumb breadcrumb shared across the flow: just "Tax Year 2025-26",
- * which always returns to the Get Started entry screen. No arrow icons or
- * per-section crumbs by design — the "My Progress" panel carries the
- * where-am-I signal instead.
+ * Back button shared across the flow. Sits in the same top-row slot the
+ * "Tax Year 2025-26" crumb used to occupy. When `onBack` is given (the
+ * question wizard), it reuses that page's own step-back logic instead of
+ * just returning home — same behavior the old bottom-of-card Back button had.
  */
 export function Breadcrumb({ onBack }: { onBack?: () => void }) {
   const router = useRouter();
@@ -16,9 +17,10 @@ export function Breadcrumb({ onBack }: { onBack?: () => void }) {
       <button
         type="button"
         onClick={() => (onBack ? onBack() : router.push("/"))}
-        className="flex h-11 items-center gap-2 rounded-full px-4 text-[var(--color-brand-dark)] transition hover:bg-[rgba(169,212,129,0.4)] hover:text-[rgb(21,70,24)]"
+        className="inline-flex h-11 items-center gap-2 rounded-lg px-3 font-bold text-[var(--color-brand-dark)] transition hover:bg-[rgba(169,212,129,0.4)] hover:text-[rgb(21,70,24)]"
       >
-        ← Back
+        <Icon name="arrow-left" size={18} />
+        Back
       </button>
     </nav>
   );

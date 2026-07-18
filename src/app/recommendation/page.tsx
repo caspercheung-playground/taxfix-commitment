@@ -122,9 +122,7 @@ export default function RecommendationPage() {
       ? `You have multiple income streams (${listOf(incomeCategoryNames)}) — one return has to bring them all together.`
       : `You earn through ${incomeCategoryNames[0] ?? "self-employment"}, which means filing a full Self Assessment return.`,
     ...(needsUtrRegistration
-      ? [
-          "You'll need UTR support before you can file — we'll register you for Self Assessment. Registering by 5 October avoids delays.",
-        ]
+      ? ["HMRC letter support and audit help", "UTR registration handled"]
       : []),
     ...(mtd === "50k-plus" ? [mtdMessages["50k-plus"]] : []),
     ...(hasCapitalGains
@@ -132,6 +130,8 @@ export default function RecommendationPage() {
       : []),
   ];
 
+  // "How It Works" moved from the plan ticket into the left panel's "Next
+  // steps" list (see StepNav) — icons there are always the lock glyph.
   const nextSteps = [
     ...(needsUtrRegistration ? [{ label: "Register UTR", caption: "Accountant (2 weeks)" }] : []),
     { label: "Upload documents", caption: "You" },

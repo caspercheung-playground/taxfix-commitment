@@ -122,7 +122,7 @@ export function railLabel(category: Category): string {
 }
 
 /** The label the final rail step + breadcrumb use for the recommendation page */
-export const MATCH_STEP_LABEL = "Match with Accountant";
+export const MATCH_STEP_LABEL = "Find accountant";
 
 export const categories: Category[] = [
   {
@@ -208,6 +208,7 @@ export const categories: Category[] = [
           {
             id: "business-expenses",
             label: "Had work-related business expenses (£2,000)",
+            icon: "briefcase",
             subPrompt: "How much did you spend on business expenses?",
             subType: "currency",
             receiptsFollowUp: true,
@@ -215,12 +216,14 @@ export const categories: Category[] = [
           {
             id: "home",
             label: "Worked from home whilst self-employed",
+            icon: "home",
             subPrompt: "How many hours a week did you work from home?",
             subType: "number",
           },
           {
             id: "vehicle",
             label: "Used car or van for business",
+            icon: "car",
             subPrompt: "How much did you spend running your vehicle?",
             subType: "currency",
           },
