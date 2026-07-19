@@ -33,7 +33,7 @@ export function LiveChatPill() {
           alt=""
           className="h-8 w-8 rounded-full object-cover"
         />
-        Help
+        Live chat and help
       </button>
 
       <AnimatePresence>
@@ -57,7 +57,11 @@ export function LiveChatPill() {
               <p className="text-xs font-semibold text-[var(--color-muted)]">Zoya · Tax assistant</p>
             </div>
             {content.title && <p className="mt-3 font-bold">{content.title}</p>}
-            <p className="mt-2 text-sm text-[var(--color-ink)]">{content.message}</p>
+            <div className="mt-2 space-y-2 text-sm text-[var(--color-ink)]">
+              {content.message.split(/\n\n+/).map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
             {content.image && (
               <img
                 src={content.image.src}

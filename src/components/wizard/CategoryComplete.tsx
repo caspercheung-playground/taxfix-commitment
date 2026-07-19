@@ -20,7 +20,7 @@ export function PreparingPlanPanel() {
         className="mx-auto h-44 w-auto object-contain"
       />
       <h3 className="mt-6 text-2xl font-extrabold tracking-tight">
-        Based on your answers, we are preparing a plan for you.
+        Based on your answers, we are preparing a plan:
       </h3>
       <p className="mt-3 text-[var(--color-muted)]">This only takes a moment…</p>
     </div>
@@ -86,14 +86,13 @@ export function CategoryComplete({
       <div className="sticky bottom-6 z-20 mx-auto flex w-full max-w-md items-center justify-between gap-4 rounded-2xl border border-[var(--color-line)] bg-white p-4 text-left shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]">
-            {/* Final allowances step foreshadows Find Expert with the same user icon */}
             <Icon name={nextCategory ? nextCategory.icon : "user"} size={20} />
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
               {nextCategory ? "Next" : "NEXT"}
             </p>
-            <p className="font-bold">{nextCategory ? nextCategory.title : "Find Expert"}</p>
+            <p className="font-bold">{nextCategory ? nextCategory.title : "Confirm Accountant"}</p>
           </div>
         </div>
         <button

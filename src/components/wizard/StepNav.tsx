@@ -27,10 +27,12 @@ export type NextStep = {
   label: string;
   /** Optional short caption under the title (e.g. role) — omit when not needed */
   caption?: string;
-  /** Longer description for simplified steps (e.g. Approve filing) */
+  /** Longer description for simplified steps (e.g. Review & Approve) */
   description?: string;
   /** Document titles with info-popup copy */
   documents?: NextStepDocument[];
+  /** Circle icon for this next-step row; defaults to lock */
+  icon?: IconName;
 };
 
 type Step = {
@@ -60,6 +62,7 @@ export function StepNav({
   matched = false,
   hideMatchStep = false,
   forceCategoryDoneId,
+  interactionLocked = false,
   onIncomeSources,
   onSelectCategory,
   onMatch,
@@ -70,10 +73,12 @@ export function StepNav({
   answers: Record<string, string>;
   /** Recommendation page only: whether the accountant match has been confirmed */
   matched?: boolean;
-  /** Hide the Find Expert row (e.g. while still on the allowances questionnaire) */
+  /** Hide the Confirm Accountant row (e.g. while still on the allowances questionnaire) */
   hideMatchStep?: boolean;
   /** Force a category to render as done (e.g. during the plan-preparing loading state) */
   forceCategoryDoneId?: string;
+  /** Disable all left-panel navigation (e.g. during preparing-plan transition) */
+  interactionLocked?: boolean;
   onIncomeSources: () => void;
   onSelectCategory: (index: number) => void;
   onMatch: () => void;
@@ -101,7 +106,7 @@ export function StepNav({
           label: "Income Sources",
           icon: "coins",
           state: "done",
-          onClick: onIncomeSources,
+          onClick: interactionLocked ? undefined : onIncomeSources,
         },
         ...activeCategories.map((category, i): Step => {
           const isActive = active.kind === "category" && active.index === i;
@@ -120,7 +125,12 @@ export function StepNav({
             label: railLabel(category),
             icon: category.icon,
             state,
-            onClick: isActive ? undefined : complete ? () => onSelectCategory(i) : undefined,
+            onClick:
+              interactionLocked || isActive
+                ? undefined
+                : complete
+                  ? () => onSelectCategory(i)
+                  : undefined,
           };
         }),
         ...(!hideMatchStep
@@ -130,24 +140,37 @@ export function StepNav({
                 label: MATCH_STEP_LABEL,
                 icon: "user" as IconName,
                 state: matchState,
-                onClick: allComplete || forceCategoryDoneId ? onMatch : undefined,
+                onClick:
+                  interactionLocked || !(allComplete || forceCategoryDoneId)
+                    ? undefined
+                    : onMatch,
               },
             ]
           : []),
       ];
 
   const showNextSteps = !!nextSteps?.length;
-  // On the recommendation page, draw a continuous rail from Find Expert down to Step 1.
-  const connectMatchToNextSteps = onMatchStep && showNextSteps;
 
   return (
     <aside className="w-full shrink-0 self-start rounded-3xl bg-[var(--color-cream)] p-6 sm:w-72">
+      {showNextSteps && (
+        <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-muted)]">
+          Your next steps
+        </p>
+      )}
+
       <ol>
         {steps.map((step, i) => {
           const last = i === steps.length - 1;
+          const next = steps[i + 1];
           const highlighted = step.state === "current" || step.state === "active-orange";
           const clickable = !!step.onClick;
-          const showConnector = !last || (last && connectMatchToNextSteps && step.key === "match");
+          const showConnector = !last || (last && showNextSteps && onMatchStep);
+          const brandConnector =
+            step.state === "done" ||
+            step.state === "current" ||
+            next?.state === "done" ||
+            next?.state === "current";
           return (
             <li key={step.key} className="flex gap-4">
               <div className="flex flex-col items-center">
@@ -165,12 +188,12 @@ export function StepNav({
                 {showConnector && (
                   <span
                     aria-hidden
-                    className={`w-px ${
-                      last && connectMatchToNextSteps
-                        ? "h-14 bg-[var(--color-line)]"
-                        : step.state === "done"
-                          ? "h-7 bg-[var(--color-brand-dark)]"
-                          : "h-7 bg-[var(--color-line)]"
+                    className={`w-px h-7 ${
+                      last && showNextSteps && onMatchStep
+                        ? "bg-[var(--color-line)]"
+                        : brandConnector
+                          ? "bg-[var(--color-brand-dark)]"
+                          : "bg-[var(--color-line)]"
                     }`}
                   />
                 )}
@@ -209,88 +232,69 @@ export function StepNav({
       </ol>
 
       {showNextSteps && (
-        <>
-          {/* Rail continues in the icon column; divider/label align with the text column */}
-          <div className="flex gap-4">
-            <div className="flex w-10 shrink-0 flex-col items-center">
-              {connectMatchToNextSteps ? null : (
-                <span aria-hidden className="h-6 w-px bg-[var(--color-line)]" />
-              )}
-              {connectMatchToNextSteps && (
-                <span aria-hidden className="min-h-6 w-px flex-1 bg-[var(--color-line)]" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1 py-4">
-              <div className="border-t border-dashed border-[var(--color-line)]" aria-hidden />
-              <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-muted)]">
-                Your next steps
-              </p>
-            </div>
-          </div>
-
-          <ol>
-            {nextSteps!.map((step, i) => {
-              const last = i === nextSteps!.length - 1;
-              const hasDocs = !!step.documents?.length;
-              const hasDescription = !!step.description;
-              const tall = hasDocs || hasDescription;
-              return (
-                <li key={step.label} className="flex gap-4">
-                  <div className="flex flex-col items-center">
+        <ol>
+          {nextSteps!.map((step, i) => {
+            const last = i === nextSteps!.length - 1;
+            const hasDocs = !!step.documents?.length;
+            const hasDescription = !!step.description;
+            const tall = hasDocs || hasDescription;
+            return (
+              <li key={step.label} className="flex gap-4">
+                <div className="flex flex-col items-center">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-white text-[var(--color-muted)]">
-                      <Icon name="lock" size={16} />
-                    </span>
-                    {!last && (
-                      <span
-                        aria-hidden
-                        className={`w-px bg-[var(--color-line)] ${tall ? "min-h-7 flex-1" : "h-7"}`}
-                      />
-                    )}
+                    <Icon name={step.icon ?? "lock"} size={16} />
+                  </span>
+                  {!last && (
+                    <span
+                      aria-hidden
+                      className={`w-px bg-[var(--color-line)] ${tall ? "min-h-7 flex-1" : "h-7"}`}
+                    />
+                  )}
+                </div>
+                <div className={`min-w-0 flex-1 ${tall ? "pb-5" : ""}`}>
+                  <div className="flex h-10 items-center">
+                    <p className="leading-tight">{step.label}</p>
                   </div>
-                  <div className={`min-w-0 flex-1 ${tall ? "pb-5" : "flex h-10 flex-col justify-center"}`}>
-                    <p className="text-sm font-semibold leading-tight">{step.label}</p>
-                    {step.caption && (
-                      <p className="text-xs leading-tight text-[var(--color-muted)]">{step.caption}</p>
-                    )}
-                    {step.description && (
-                      <p className="mt-1.5 text-xs leading-snug text-[var(--color-muted)]">
-                        {step.description}
-                      </p>
-                    )}
-                    {hasDocs && (
-                      <ul className="mt-2 space-y-2">
-                        {step.documents!.map((doc) => (
-                          <li key={doc.title} className="flex items-start gap-1.5">
-                            <span className="text-xs font-semibold text-[var(--color-ink)]">
-                              {doc.title}
-                            </span>
-                            <button
-                              type="button"
-                              aria-label={`About ${doc.title}`}
-                              onClick={() =>
-                                openPopup({
-                                  title: doc.title,
-                                  message: doc.body,
-                                  image: {
-                                    src: "/document-placeholder.svg",
-                                    alt: `Example of ${doc.title}`,
-                                  },
-                                })
-                              }
-                              className="mt-0.5 shrink-0 text-[var(--color-muted)] transition hover:text-[var(--color-brand-dark)]"
-                            >
-                              <Icon name="help-circle" size={14} />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </>
+                  {step.caption && (
+                    <p className="-mt-1 text-xs leading-tight text-[var(--color-muted)]">
+                      {step.caption}
+                    </p>
+                  )}
+                  {step.description && (
+                    <p className="text-xs leading-snug text-[var(--color-muted)]">{step.description}</p>
+                  )}
+                  {hasDocs && (
+                    <ul className="mt-1 space-y-2">
+                      {step.documents!.map((doc) => (
+                        <li key={doc.title} className="flex items-center gap-1.5">
+                          <span className="text-xs text-[var(--color-muted)]">{doc.title}</span>
+                          <button
+                            type="button"
+                            aria-label={`About ${doc.title}`}
+                            onClick={() =>
+                              openPopup({
+                                title: doc.title,
+                                message: doc.body,
+                                image: {
+                                  src: "/document-placeholder.svg",
+                                  alt: `Example of ${doc.title}`,
+                                },
+                              })
+                            }
+                            className="shrink-0 transition opacity-90 hover:opacity-100"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/info-solid.svg" alt="" aria-hidden className="h-3.5 w-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       )}
     </aside>
   );

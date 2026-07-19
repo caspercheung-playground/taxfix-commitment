@@ -682,8 +682,10 @@ function ChecklistQuestionCard({
         {question.items.map((item) => {
           const state = checklistState[item.id];
           const added = state?.added;
+          const amount = Number.parseFloat(state?.value ?? "");
+          const amountOver1000 = Number.isFinite(amount) && amount > 1000;
           return (
-            <div key={item.id}>
+            <div key={item.id} className={added ? "mb-5" : undefined}>
               <div
                 className={`flex items-center justify-between gap-4 rounded-2xl border p-4 transition ${
                   added
@@ -765,8 +767,9 @@ function ChecklistQuestionCard({
                             setReceipts((prev) => ({ ...prev, [item.id]: v }));
                             if (v === "No") {
                               openPopup({
-                                message:
-                                  "We'll need records of your expenses in order to claim them; if you're unable to provide records you can instead select the trading allowance to claim a £1,000 flat rate — no receipts needed. The Trading Allowance is a tax-free amount worth £1,000 that you can claim if your expenses are under £1,000 or if you don't have records of your expenses.",
+                                message: amountOver1000
+                                  ? "We'll need records of your expenses in order to claim them.\n\nIf you're unable to provide records you can change the number to £1,000 to instead to claim a trading £1,000 tax-free allowance."
+                                  : "We'll need records of your expenses in order to claim them; if you're unable to provide records you can instead select the trading allowance to claim a £1,000 flat rate — no receipts needed. The Trading Allowance is a tax-free amount worth £1,000 that you can claim if your expenses are under £1,000 or if you don't have records of your expenses.",
                                 link: {
                                   label: "Find out more here",
                                   href: "https://taxfix.com/en-uk/glossary/trading-allowance/",

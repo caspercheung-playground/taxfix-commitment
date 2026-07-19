@@ -13,10 +13,9 @@ export default function Home() {
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
             Slice 2: The Commitment Moment
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-[var(--color-muted)]">
-            First-time UK filers reach the commitment moment without a clear, personalized
-            answer to which and why service for me, and what exactly happens after I pay, and
-            trust breaks at the highest-intent point in the funnel.
+          <p className="mx-auto mt-4 max-w-3xl text-lg text-[var(--color-muted)] text-balance">
+            This demo is designed for first-time UK filers with strong intention but without a
+            clear answer to which plan is for me, why, or what happens after they pay.
           </p>
           <Link
             href="/choose-tax-tool"
