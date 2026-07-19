@@ -76,20 +76,26 @@ function QuestionShell({
     <>
       <ContextNote note={question.contextNote} />
       <div className="px-1">
-        <h3 className="text-xl font-extrabold leading-snug sm:text-2xl">{question.prompt}</h3>
+        <h3 className="text-xl font-extrabold leading-snug sm:text-2xl">
+          {question.prompt}
+          {question.infoButton && (
+            <>
+              {" "}
+              <button
+                type="button"
+                onClick={() =>
+                  openPopup({ title: question.infoButton!.title, message: question.infoButton!.body })
+                }
+                aria-label={question.infoButton.title}
+                className="relative top-[-0.1em] inline-flex align-middle"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/info-solid.svg" alt="" aria-hidden className="h-4 w-4" />
+              </button>
+            </>
+          )}
+        </h3>
         {question.helper && <p className="mt-2 text-[var(--color-muted)]">{question.helper}</p>}
-        {question.infoButton && (
-          <button
-            type="button"
-            onClick={() =>
-              openPopup({ title: question.infoButton!.title, message: question.infoButton!.body })
-            }
-            className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-brand-dark)] underline underline-offset-2"
-          >
-            <Icon name="help-circle" size={16} />
-            Tell me more
-          </button>
-        )}
       </div>
       <div className="mt-6 px-1">{children}</div>
     </>
