@@ -158,7 +158,7 @@ export const incomeSources: IncomeSource[] = [
   },
   {
     id: "property",
-    title: "Property",
+    title: "Property income",
     description: "Income from renting or leasing property",
     icon: "home",
   },
