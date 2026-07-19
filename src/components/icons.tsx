@@ -25,6 +25,8 @@ export type IconName =
   | "upload"
   | "send"
   | "lock"
+  | "file-text"
+  | "search"
   | "pencil"
   | "laptop"
   | "wrench"
@@ -204,6 +206,24 @@ export function Icon({ name, ...props }: { name: IconName } & IconProps) {
         <>
           <rect x="3" y="11" width="18" height="11" rx="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </>,
+        props
+      );
+    case "file-text":
+      return base(
+        <>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+          <path d="M14 2v6h6" />
+          <path d="M8 13h8" />
+          <path d="M8 17h6" />
+        </>,
+        props
+      );
+    case "search":
+      return base(
+        <>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
         </>,
         props
       );

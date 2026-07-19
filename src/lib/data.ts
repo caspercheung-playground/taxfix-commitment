@@ -7,6 +7,7 @@ export const TAX_YEAR_LABEL = "2025/26";
 
 /** The plan the flow recommends — mirrors the "Tax Return Plus" card in the design */
 export const recommendedPlan = {
+  id: "tax-return-plus",
   name: "Tax Return Plus",
   tagline: "Get expert support for complete peace of mind.",
   price: "£149",
@@ -27,6 +28,75 @@ export const recommendedPlan = {
     },
   ],
 };
+
+/** Simplified plan picker cards (Change → Choose your plan) */
+export type ComparePlan = {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  renewal: string;
+  discount?: string;
+  tagline?: string;
+  badge?: string;
+  intro?: string;
+  features: string[];
+};
+
+export const comparePlans: ComparePlan[] = [
+  {
+    id: "essentials",
+    name: "Tax Return Essentials",
+    tagline: "Your tax return filed with guaranteed accuracy.",
+    price: "£99",
+    period: "/year",
+    discount: "£50 OFF",
+    renewal: "Renews at £149/year. Cancel anytime.",
+    features: [
+      "File with total confidence",
+      "Prepare and file Self Assessment",
+      "Optimise reliefs and allowances",
+      "Message accountant with questions",
+    ],
+  },
+  {
+    id: "tax-return-plus",
+    name: "Tax Return Plus",
+    tagline: "Get expert support for complete peace of mind.",
+    price: "£149",
+    period: "/year",
+    discount: "£50 OFF",
+    badge: "Most popular",
+    renewal: "Renews at £199/year. Cancel anytime.",
+    intro: "All the goodness of Essentials, plus:",
+    features: [
+      "HMRC letter support",
+      "HMRC investigation support",
+      "Tax return consultation call",
+      "Personal tax summary",
+      "UTR registration",
+    ],
+  },
+  {
+    id: "premium",
+    name: "Tax Return Platinum",
+    tagline: "A strategic tax partner for year-round tax freedom.",
+    price: "£349",
+    period: "/year",
+    discount: "£150 OFF",
+    renewal: "Renews at £499/year. Cancel anytime.",
+    intro: "All the greatness of Plus, plus:",
+    features: [
+      "Act as HMRC agent",
+      "Strategic tax planning (3 calls)",
+      "Year-round accountant messaging",
+      "Priority response",
+    ],
+  },
+];
+
+export const TRUSTPILOT_URL =
+  "https://uk.trustpilot.com/review/taxfix.com/en-uk?utm_medium=trustbox&utm_source=MicroTrustScore";
 
 /**
  * Keyed on HMRC's Making Tax Digital thresholds — £50,000 (applies from April
@@ -128,37 +198,42 @@ export function railLabel(category: Category): string {
 }
 
 /** The label the final rail step + breadcrumb use for the recommendation page */
-export const MATCH_STEP_LABEL = "Find Expert";
+export const MATCH_STEP_LABEL = "Confirm Accountant";
 
 /** Matched accountant shown on the recommendation page (prototype) */
 export const matchedAccountant = {
-  name: "Svetlana Makusheva",
-  photo: "/avatar-zoya.jpg",
+  name: "Kunal Viyala",
+  photo: "/kunal-viyala.png",
   description:
-    "Svetlana Makusheva will prepare the Self Assessment and send it to you to review for approval. You'll be told exactly what documents you'll need to upload (if any) once you've confirmed and paid.",
+    "Kunal Viyala will prepare the Self Assessment and send it to you to review for approval. You'll be told exactly what documents you'll need to upload (if any) once you've confirmed and paid.",
   trustpilotLabel: "Excellent",
-  trustpilotScore: "4.8 out of 5",
+  trustpilotScore: "4.7 out of 5",
 };
 
 /** Documents listed under Step 1 on the recommendation left panel */
-export const prepareDocuments: { title: string; body: string }[] = [
+export const prepareDocuments: { id: string; title: string; body: string }[] = [
   {
+    id: "hmrc-letter",
     title: "HMRC letter",
     body: "A scan or photo of the physical letter. Your accountant needs the date, the department that sent it, and whether it includes a UTR or an explicit penalty notice.",
   },
   {
+    id: "government-gateway",
     title: "Government Gateway details",
     body: "Your login ID and password if you have one, or any notice confirming whether a registration was partially attempted.",
   },
   {
+    id: "gross-income",
     title: "Gross income evidence",
     body: "A summary spreadsheet, all sales invoices, or 12 months of business bank statements showing payments from clients.",
   },
   {
+    id: "business-expenses",
     title: "Business expenses",
     body: 'Receipts or a log of "wholly and exclusively" business-related costs (e.g. software, marketing, phone bills, or travel logs).',
   },
   {
+    id: "gross-rental",
     title: "Gross rental income",
     body: "Total cash or bank transfers received from the lodger between 6 April and 5 April.",
   },
@@ -246,7 +321,7 @@ export const categories: Category[] = [
         items: [
           {
             id: "business-expenses",
-            label: "Had work-related business expenses (£2,000)",
+            label: "Had work-related business expenses",
             icon: "briefcase",
             subPrompt: "How much did you spend on business expenses?",
             subType: "currency",

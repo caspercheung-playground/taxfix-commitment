@@ -44,7 +44,7 @@ export default function ChooseTaxToolPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <HeroBackdrop />
-      <main className="relative z-10 mx-auto w-full max-w-4xl flex-1 px-5 py-16 sm:py-24">
+      <main className="relative z-10 mx-auto w-full max-w-4xl flex-1 px-5 pt-8 pb-16 sm:pt-10 sm:pb-24">
         <div className="text-center">
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             Welcome! What brings you here today?

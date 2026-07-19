@@ -20,7 +20,7 @@ import {
   pseudoUuid,
 } from "@/lib/wizard";
 
-const PREPARING_PLAN_MS = 10_000;
+const PREPARING_PLAN_MS = 2_000;
 
 export default function QuestionWizardPage() {
   const router = useRouter();
@@ -200,11 +200,11 @@ export default function QuestionWizardPage() {
             activeCategories={activeCategories}
             active={{ kind: "category", index: safeCategoryIndex }}
             answers={answers}
-            hideMatchStep={category.id === "general" && !preparingPlan}
+            hideMatchStep
             forceCategoryDoneId={preparingPlan ? category.id : undefined}
+            interactionLocked={preparingPlan}
             onIncomeSources={() => router.push("/income-sources")}
             onSelectCategory={(i) => {
-              if (preparingPlan) return;
               // Re-entering a finished session lands on its answer overview,
               // never back at question one — the user picks what to revisit.
               const target = activeCategories[i];
