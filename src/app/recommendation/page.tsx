@@ -394,7 +394,7 @@ function AccountantPlanCard({
             href="https://taxform.com/en-uk/call-me/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-brand-dark)] bg-white px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[rgba(169,212,129,0.4)]"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[rgba(169,212,129,0.4)]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/phone-outline.svg" alt="" aria-hidden className="h-4 w-4" />
