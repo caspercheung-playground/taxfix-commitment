@@ -11,7 +11,7 @@ function CheckIllustration() {
 
 export function PreparingPlanPanel() {
   return (
-    <div className="rounded-3xl p-8 text-center sm:p-12">
+    <div className="rounded-3xl px-8 pb-8 pt-0 text-center sm:px-12 sm:pb-12">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/tasks-list.png"
@@ -50,7 +50,7 @@ export function CategoryComplete({
   const questions = getVisibleQuestions(category, answers);
 
   return (
-    <div className="rounded-3xl p-8 text-center sm:p-12">
+    <div className="rounded-3xl px-8 pb-8 pt-0 text-center sm:px-12 sm:pb-12">
       <CheckIllustration />
       <h3 className="mt-4 text-2xl font-extrabold">{heading}</h3>
       <p className="mt-2 text-[var(--color-muted)]">{sub}</p>

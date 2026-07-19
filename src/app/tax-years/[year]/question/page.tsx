@@ -190,35 +190,37 @@ export default function QuestionWizardPage() {
       <Header progress={progress} />
       <HeroBackdrop dimmed />
       <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-5 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <Breadcrumb onBack={goBack} />
-          <LiveChatPill />
-        </div>
-
         <div className="flex flex-col gap-6 sm:flex-row">
-          <StepNav
-            activeCategories={activeCategories}
-            active={{ kind: "category", index: safeCategoryIndex }}
-            answers={answers}
-            hideMatchStep
-            forceCategoryDoneId={preparingPlan ? category.id : undefined}
-            interactionLocked={preparingPlan}
-            onIncomeSources={() => router.push("/income-sources")}
-            onSelectCategory={(i) => {
-              // Re-entering a finished session lands on its answer overview,
-              // never back at question one — the user picks what to revisit.
-              const target = activeCategories[i];
-              setCategoryIndex(i);
-              setQuestionIndex(
-                isCategoryComplete(target, answers)
-                  ? getVisibleQuestions(target, answers).length
-                  : 0
-              );
-            }}
-            onMatch={() => router.push("/recommendation")}
-          />
+          {/* Same sticky left stack as recommendation: breadcrumb + rail stay pinned */}
+          <div className="sticky top-6 flex w-full shrink-0 flex-col gap-4 self-start sm:w-72">
+            <Breadcrumb onBack={goBack} />
+            <StepNav
+              activeCategories={activeCategories}
+              active={{ kind: "category", index: safeCategoryIndex }}
+              answers={answers}
+              hideMatchStep
+              forceCategoryDoneId={preparingPlan ? category.id : undefined}
+              interactionLocked={preparingPlan}
+              onIncomeSources={() => router.push("/income-sources")}
+              onSelectCategory={(i) => {
+                // Re-entering a finished session lands on its answer overview,
+                // never back at question one — the user picks what to revisit.
+                const target = activeCategories[i];
+                setCategoryIndex(i);
+                setQuestionIndex(
+                  isCategoryComplete(target, answers)
+                    ? getVisibleQuestions(target, answers).length
+                    : 0
+                );
+              }}
+              onMatch={() => router.push("/recommendation")}
+            />
+          </div>
 
           <div className="min-w-0 flex-1">
+            <div className="mb-2 flex justify-end">
+              <LiveChatPill />
+            </div>
             {preparingPlan ? (
               <PreparingPlanPanel />
             ) : isComplete ? (
