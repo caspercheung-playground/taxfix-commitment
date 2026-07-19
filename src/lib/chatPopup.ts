@@ -13,6 +13,8 @@ export interface ChatPopupContent {
   /** Optional bold heading above the message */
   title?: string;
   message: string;
+  /** Optional example/illustration shown under the message */
+  image?: { src: string; alt?: string };
   /** Optional trailing link rendered under the message */
   link?: { label: string; href: string };
 }

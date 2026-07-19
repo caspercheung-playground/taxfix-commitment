@@ -58,6 +58,13 @@ export function LiveChatPill() {
             </div>
             {content.title && <p className="mt-3 font-bold">{content.title}</p>}
             <p className="mt-2 text-sm text-[var(--color-ink)]">{content.message}</p>
+            {content.image && (
+              <img
+                src={content.image.src}
+                alt={content.image.alt ?? ""}
+                className="mt-3 w-full rounded-xl border border-[var(--color-line)] object-cover"
+              />
+            )}
             {content.link && (
               <a
                 href={content.link.href}

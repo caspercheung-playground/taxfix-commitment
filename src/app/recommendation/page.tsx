@@ -8,8 +8,15 @@ import { HeroBackdrop } from "@/components/HeroBackdrop";
 import { Icon } from "@/components/icons";
 import { LiveChatPill } from "@/components/LiveChatPill";
 import { Breadcrumb } from "@/components/wizard/Breadcrumb";
-import { StepNav } from "@/components/wizard/StepNav";
-import { categories, incomeSources, mtdMessages, recommendedPlan } from "@/lib/data";
+import { StepNav, type NextStep } from "@/components/wizard/StepNav";
+import {
+  categories,
+  incomeSources,
+  matchedAccountant,
+  mtdMessages,
+  prepareDocuments,
+  recommendedPlan,
+} from "@/lib/data";
 import { useAppStore } from "@/lib/store";
 import { getVisibleQuestions, isCategoryComplete, mtdStatus } from "@/lib/wizard";
 
@@ -97,6 +104,36 @@ function PlanTicket({
   );
 }
 
+function MatchedAccountantCard() {
+  const accountant = matchedAccountant;
+  return (
+    <div className="rounded-2xl bg-[var(--color-cream)] p-5 sm:p-6">
+      <div className="flex gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={accountant.photo}
+          alt=""
+          className="h-16 w-16 shrink-0 rounded-full object-cover"
+        />
+        <div className="min-w-0">
+          <h2 className="text-xl font-extrabold tracking-tight">
+            {accountant.name} is your accountant
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink)]">
+            {accountant.description}
+          </p>
+          <p className="mt-3 flex flex-wrap items-center gap-1.5 text-sm font-semibold text-[var(--color-ink)]">
+            <span>{accountant.trustpilotLabel}</span>
+            <span>{accountant.trustpilotScore}</span>
+            <Icon name="check" size={14} className="text-[var(--color-brand-dark)]" />
+            <span className="font-bold">Trustpilot</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RecommendationPage() {
   const router = useRouter();
   const selectedSources = useAppStore((s) => s.incomeSources);
@@ -139,15 +176,16 @@ export default function RecommendationPage() {
       : []),
   ];
 
-  // "How It Works" moved from the plan ticket into the left panel's "Next
-  // steps" list (see StepNav) — icons there are always the lock glyph.
-  const nextSteps = [
-    ...(hmrcContacted ? [{ label: "Review HMRC contact", caption: "Accountant" }] : []),
-    ...(needsUtrRegistration ? [{ label: "Register UTR", caption: "Accountant (2 weeks)" }] : []),
-    { label: "Upload documents", caption: "You" },
-    { label: "Review and filing", caption: "Accountant" },
-    { label: "Review and approve", caption: "You" },
-    { label: "File with HMRC", caption: "Accountant" },
+  const nextSteps: NextStep[] = [
+    {
+      label: "Prepare documents",
+      documents: prepareDocuments,
+    },
+    {
+      label: "Approve filing",
+      description:
+        "Your accountant prepares your return based on the documents you shared; you review and approve; they file directly with HMRC.",
+    },
   ];
 
   function editCategory(index: number) {
@@ -186,8 +224,10 @@ export default function RecommendationPage() {
       <HeroBackdrop dimmed />
       <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-5 py-8">
         <div className="mb-6 flex items-center justify-between">
-          {/* Standard back-in-history behavior, not a hardcoded return to Get Started */}
-          <Breadcrumb onBack={() => router.back()} />
+          <Breadcrumb
+            label="All questions answered."
+            onBack={() => router.back()}
+          />
           <LiveChatPill />
         </div>
 
@@ -203,13 +243,16 @@ export default function RecommendationPage() {
             nextSteps={nextSteps}
           />
 
-          {/* Main recommendation */}
           <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-extrabold tracking-tight">Hand over your stress.</h1>
             <p className="mt-2 text-[var(--color-ink)]">
               Secure your filing slot with a UK-accredited specialist today. All of our tax return
               services are covered by our 100% Accuracy Guarantee.
             </p>
+
+            <div className="mt-6">
+              <MatchedAccountantCard />
+            </div>
 
             {isFirstTimeFiler && (
               <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
