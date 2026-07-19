@@ -50,13 +50,6 @@ function buildAccountantSteps({
 }): AccountantStep[] {
   const steps: AccountantStep[] = [];
 
-  if (entryReasons.includes("hmrc-contact")) {
-    steps.push({
-      title: "Provide HMRC Letter Support and Audit",
-      body: "Your accountant will review HMRC correspondence and help you reply accurately if anything is outstanding.",
-    });
-  }
-
   steps.push({
     title: "Provide Consultation",
     body: "Book a call if you want a walkthrough of your return before filing — useful for first-time filers or more complex years.",
@@ -65,7 +58,7 @@ function buildAccountantSteps({
   if (saRegistered === "No") {
     steps.push({
       title: "Register for Self-Assessment",
-      body: "",
+      body: "No worries! Your matched accountant will contact HMRC directly to backdate your registration and mitigate any late fees.",
     });
   }
 
@@ -73,6 +66,13 @@ function buildAccountantSteps({
     title: "Review Documents",
     body: "Your accountant will check the records you upload and request anything missing before preparing your return.",
   });
+
+  if (entryReasons.includes("hmrc-contact")) {
+    steps.push({
+      title: "Provide HMRC Letter Support and Audit",
+      body: "Your accountant will review HMRC correspondence and help you reply accurately if anything is outstanding.",
+    });
+  }
 
   steps.push({
     title: "Handle Main Self Assessment Tax Return (SA100)",
