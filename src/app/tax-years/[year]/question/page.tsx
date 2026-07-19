@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
@@ -9,7 +9,7 @@ import { LiveChatPill } from "@/components/LiveChatPill";
 import { Breadcrumb } from "@/components/wizard/Breadcrumb";
 import { StepNav } from "@/components/wizard/StepNav";
 import { QuestionCard } from "@/components/wizard/QuestionCard";
-import { CategoryComplete } from "@/components/wizard/CategoryComplete";
+import { CategoryComplete, PreparingPlanPanel } from "@/components/wizard/CategoryComplete";
 import { categories } from "@/lib/data";
 import { useAppStore } from "@/lib/store";
 import {
@@ -20,9 +20,12 @@ import {
   pseudoUuid,
 } from "@/lib/wizard";
 
+const PREPARING_PLAN_MS = 10_000;
+
 export default function QuestionWizardPage() {
   const router = useRouter();
   const pathname = usePathname();
+  const [preparingPlan, setPreparingPlan] = useState(false);
 
   const incomeSources = useAppStore((s) => s.incomeSources);
   const answers = useAppStore((s) => s.answers);
@@ -136,10 +139,19 @@ export default function QuestionWizardPage() {
     if (nextCategory) {
       setCategoryIndex(safeCategoryIndex + 1);
       setQuestionIndex(0);
-    } else {
-      router.push("/recommendation");
+      return;
     }
+    // Final allowances step → brief preparing-plan loading state, then recommendation.
+    setPreparingPlan(true);
   }
+
+  useEffect(() => {
+    if (!preparingPlan) return;
+    const timer = window.setTimeout(() => {
+      router.push("/recommendation");
+    }, PREPARING_PLAN_MS);
+    return () => window.clearTimeout(timer);
+  }, [preparingPlan, router]);
 
   // The always-on "general" category means activeCategories is never empty, so
   // this has to key off the income sources themselves.
@@ -188,8 +200,11 @@ export default function QuestionWizardPage() {
             activeCategories={activeCategories}
             active={{ kind: "category", index: safeCategoryIndex }}
             answers={answers}
+            hideMatchStep={category.id === "general" && !preparingPlan}
+            forceCategoryDoneId={preparingPlan ? category.id : undefined}
             onIncomeSources={() => router.push("/income-sources")}
             onSelectCategory={(i) => {
+              if (preparingPlan) return;
               // Re-entering a finished session lands on its answer overview,
               // never back at question one — the user picks what to revisit.
               const target = activeCategories[i];
@@ -204,7 +219,9 @@ export default function QuestionWizardPage() {
           />
 
           <div className="min-w-0 flex-1">
-            {isComplete ? (
+            {preparingPlan ? (
+              <PreparingPlanPanel />
+            ) : isComplete ? (
               <CategoryComplete
                 category={category}
                 answers={answers}

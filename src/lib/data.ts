@@ -130,6 +130,40 @@ export function railLabel(category: Category): string {
 /** The label the final rail step + breadcrumb use for the recommendation page */
 export const MATCH_STEP_LABEL = "Find Expert";
 
+/** Matched accountant shown on the recommendation page (prototype) */
+export const matchedAccountant = {
+  name: "Svetlana Makusheva",
+  photo: "/avatar-zoya.jpg",
+  description:
+    "Svetlana Makusheva will prepare the Self Assessment and send it to you to review for approval. You'll be told exactly what documents you'll need to upload (if any) once you've confirmed and paid.",
+  trustpilotLabel: "Excellent",
+  trustpilotScore: "4.8 out of 5",
+};
+
+/** Documents listed under Step 1 on the recommendation left panel */
+export const prepareDocuments: { title: string; body: string }[] = [
+  {
+    title: "HMRC letter",
+    body: "A scan or photo of the physical letter. Your accountant needs the date, the department that sent it, and whether it includes a UTR or an explicit penalty notice.",
+  },
+  {
+    title: "Government Gateway details",
+    body: "Your login ID and password if you have one, or any notice confirming whether a registration was partially attempted.",
+  },
+  {
+    title: "Gross income evidence",
+    body: "A summary spreadsheet, all sales invoices, or 12 months of business bank statements showing payments from clients.",
+  },
+  {
+    title: "Business expenses",
+    body: 'Receipts or a log of "wholly and exclusively" business-related costs (e.g. software, marketing, phone bills, or travel logs).',
+  },
+  {
+    title: "Gross rental income",
+    body: "Total cash or bank transfers received from the lodger between 6 April and 5 April.",
+  },
+];
+
 export const categories: Category[] = [
   {
     id: "self-employment",
