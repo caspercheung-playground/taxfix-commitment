@@ -6,7 +6,7 @@ import { Icon } from "@/components/icons";
 const KEY_POINTS: { label: string; text: string }[] = [
   {
     label: "Business goal",
-    text: "UK team's focus: Growth & conversion at the moments that matter",
+    text: "Increase conversion at the moments that matter",
   },
   {
     label: "User profile",
@@ -18,11 +18,11 @@ const KEY_POINTS: { label: string; text: string }[] = [
   },
   {
     label: "Scope",
-    text: "Get Started \u2192 Questionnaire \u2192 Confirm & Pay",
+    text: 'From "Get Started" to "Match Accountant" for 2 income streams with HMRC letter',
   },
   {
     label: "Out of scope",
-    text: "Discovery check, post-payment retention/activation, other income flows",
+    text: "Eligibility check, post-payment activation, other income flows",
   },
 ];
 

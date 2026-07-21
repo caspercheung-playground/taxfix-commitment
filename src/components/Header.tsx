@@ -8,7 +8,7 @@ export function Header({ progress }: { progress?: number }) {
         <div className="flex items-center gap-3">
           <Logo />
           <span className="inline-flex items-center rounded-full bg-[var(--color-brand-soft-2)] px-3 py-1 text-xs font-semibold text-[var(--color-brand-dark)]">
-            Freelance & Rental only
+            Freelance & Property only
           </span>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
