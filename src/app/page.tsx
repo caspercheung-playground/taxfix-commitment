@@ -10,11 +10,11 @@ const KEY_POINTS: { label: string; text: string }[] = [
   },
   {
     label: "User profile",
-    text: "Anxious \u201cDo-It-For-Me\u201d first-timers with high intent, low confidence.",
+    text: "Anxious \u201cDo-It-For-Me\u201d first-timers with high intent, low confidence",
   },
   {
     label: "Benefit both sides",
-    text: "Increase trust for customers, Structured pre-validated profiles for advisors",
+    text: "Increase trust for customers, increase efficiency for advisors",
   },
   {
     label: "Scope",
