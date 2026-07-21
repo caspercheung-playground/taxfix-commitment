@@ -18,7 +18,7 @@ const KEY_POINTS: { label: string; text: string }[] = [
   },
   {
     label: "Scope",
-    text: 'From "Get Started" to "Match Accountant" for 2 income streams with HMRC letter',
+    text: 'From "Get Started" to "Confirm & Pay" for 2 income streams with HMRC letter',
   },
   {
     label: "Out of scope",
