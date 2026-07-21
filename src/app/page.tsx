@@ -14,7 +14,7 @@ const KEY_POINTS: { label: string; text: string }[] = [
   },
   {
     label: "Benefit both sides",
-    text: "Increase trust for customers, Structured pre-validated profiles for advisors",
+    text: "Increase trust for customers, increase efficiency for advisors",
   },
   {
     label: "Scope",
