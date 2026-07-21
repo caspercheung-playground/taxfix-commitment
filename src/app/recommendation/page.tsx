@@ -388,7 +388,7 @@ function AccountantPlanCard({
             onClick={onConfirm}
             className="w-full rounded-lg bg-[var(--color-brand)] px-6 py-3.5 font-bold text-[var(--color-brand-dark)] transition hover:bg-[var(--color-brand-dark)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[var(--color-brand)] disabled:hover:text-[var(--color-brand-dark)]"
           >
-            Confirm accountant &amp; pay
+            Confirm and Pay
           </button>
           <a
             href="https://taxform.com/en-uk/call-me/"
